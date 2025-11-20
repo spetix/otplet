@@ -1,0 +1,84 @@
+
+name: project ci
+
+on: [push, pull_request]
+
+permissions:
+  pull-requests: write
+  contents: write
+
+
+jobs:
+  
+  build:
+    name: builder
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout project
+      uses: actions/checkout@v4
+    - name: Set up Go environment
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: go.mod 
+    - name: Get dependencies
+      run: make setup
+    - name: Build All
+      run: make build
+    - name: Save build binaries
+      uses: actions/upload-artifact@v4
+      with:
+        name: otp_blocket-bundle
+        path: bin
+    - name: Test
+      run: make test
+    - name: Upload Go test results
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: test-results.json
+       
+    - name: Convert go coverage to corbetura format
+      run: make coverage
+    - name: Generate code coverage report
+      uses: irongut/CodeCoverageSummary@v1.3.0
+      with:
+        filename: coverage.xml
+        badge: true
+        fail_below_min: true
+        format: markdown
+        hide_branch_rate: false
+        hide_complexity: true
+        indicators: true
+        output: both
+        thresholds: '20 40'
+
+
+    - name: Add Coverage PR Comment
+      uses: marocchino/sticky-pull-request-comment@v2
+      if: github.event_name == 'pull_request'
+      with:
+        recreate: true
+        path: code-coverage-results.md
+    - name: ls
+      run: ls -FlaR .
+    - name: Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        generate_release_notes: true
+        make_latest: true
+        files: |
+          bin/otp_blocket-*
+          README.md
+    - name: Prepare site
+      run: make prepare-site
+      if: startsWith(github.ref, 'refs/tags/')
+
+    - name: Deploy 🚀
+      uses: JamesIves/github-pages-deploy-action@v4
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        folder: build/site # The folder the action should deploy
+
+
