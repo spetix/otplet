@@ -2,11 +2,12 @@ package otp
 
 import (
 	"encoding/json"
+	"fmt"
+	"log"
 	"os"
 	"sync/atomic"
 	"time"
 
-	"github.com/pquerna/otp"
 	otplib "github.com/pquerna/otp"
 	totp "github.com/pquerna/otp/totp"
 )
@@ -29,12 +30,29 @@ func LoadTokenFromFile(path string) (*otplib.Key, error) {
 	}
 	defer hdlr.Close()
 
-	var key *otp.Key
-	if err := json.NewDecoder(hdlr).Decode(&key); err != nil {
+	var keyUrl string
+	if err := json.NewDecoder(hdlr).Decode(&keyUrl); err != nil {
+		return nil, err
+	}
+
+	key, err := otplib.NewKeyFromURL(keyUrl)
+	if err != nil {
 		return nil, err
 	}
 
 	return key, nil
+}
+
+func SaveGenerator(url string, path string) error {
+	if url == "" {
+		return fmt.Errorf("URL cannot be empty")
+	}
+	log.Default().Printf("Importing OTP generator with URL: %s to path: %s\n", url, path)
+	key, err := otplib.NewKeyFromURL(url)
+	if err != nil {
+		return err
+	}
+	return SaveTokenToFile(path, key)
 }
 
 func SaveTokenToFile(path string, key *otplib.Key) error {
@@ -44,9 +62,12 @@ func SaveTokenToFile(path string, key *otplib.Key) error {
 	}
 	defer hdlr.Close()
 
-	if err := json.NewEncoder(hdlr).Encode(key); err != nil {
+	enc := json.NewEncoder(hdlr)
+
+	if err := enc.Encode(key.URL()); err != nil {
 		return err
 	}
+	log.Default().Printf("OTP generator saved to %s\n", path)
 
 	return nil
 }
@@ -83,18 +104,26 @@ type OtpProvider struct {
 
 func NewOtpProvider(key *otplib.Key) *OtpProvider {
 	provider := &OtpProvider{
-		Key:  key,
+		Key: key,
+		// atomic.Pointer zero value is fine, but we populate it immediately
 		Code: atomic.Pointer[PassCode]{},
 	}
 
+	// generate an initial code synchronously so callers don't get nil
+	provider.otpCode()
+
+	// start the background refresher now that we have a valid code
 	go provider.start()
 	return provider
 }
 
 func (p *OtpProvider) start() {
-	for {
+	period := time.Duration(p.Key.Period()) * time.Second
+	ticker := time.NewTicker(period)
+	defer ticker.Stop()
+
+	for range ticker.C {
 		p.otpCode()
-		time.Sleep(p.Code.Load().Remaining)
 	}
 }
 

@@ -1,37 +1,31 @@
 package main
 
 import (
+	"log"
 	"os"
 
-	"github.com/spetix/bar-out-adapters/pkg/barout"
-	"github.com/spf13/cobra"
 	"fmt"
+
+	"github.com/spetix/bar-out-adapters/pkg/barout"
+	otp "github.com/spetix/otplet/internal"
+	"github.com/spf13/cobra"
 )
 
-// type renderOptions RenderOptions {
-// 	Label string
-// 	Format string
-// 	Color string
-// 	BackgroundColor string
-// }
-
 func main() {
-	var renderOptions struct {
-		Label string
-		Format string
-		ForegroundColor string
-		BackgroundColor string
-	}
+	var renderOptions otp.RenderOptions
 
 	var proto string
+	var otpStore string
+	var url string
+	var path string
 
-	    var rootCmd = &cobra.Command{
-        Use:   "otplet",
-        Short: "manage your otps in a smart way",
-        Run: func(cmd *cobra.Command, args []string) {
-            fmt.Println("Use --help to see available commands.")
-        },
-    }
+	var rootCmd = &cobra.Command{
+		Use:   "otplet",
+		Short: "manage your otps in a smart way",
+		Run: func(cmd *cobra.Command, args []string) {
+			fmt.Println("Use --help to see available commands.")
+		},
+	}
 
 	create := &cobra.Command{
 		Use:   "create",
@@ -40,12 +34,17 @@ func main() {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			log.Default().Print("Import generator token")
+			err := otp.SaveGenerator(url, path)
+			if err != nil {
+				log.Default().Printf("Error saving OTP generator: %v\n", err)
+				os.Exit(1)
+			}
 			// setup := token.New(name,secret)
 			// setup.store()
-			fmt.Println("Not yet implemented")
 		},
 	}
-			
+
 	show := &cobra.Command{
 		Use:   "show",
 		Short: "show current otp",
@@ -53,13 +52,28 @@ func main() {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
-			b := barout.New("proto")
-			b.Print(nil)
+			b := barout.New(proto)
+			key, err := otp.LoadTokenFromFile(otpStore)
+			if err != nil {
+				fmt.Printf("Error loading OTP key: %v\n", err)
+				os.Exit(1)
+			}
+			otpProvider := otp.NewOtpProvider(key)
+			if otpProvider == nil {
+				os.Exit(1)
+			}
+			data := otp.OtpDataNew(otpProvider, &renderOptions)
+
+			b.Print(data)
 		},
 	}
 
-	rootCmd.AddCommand(show)
 	rootCmd.AddCommand(create)
+
+	createFlags := create.Flags()
+	createFlags.StringVarP(&url, "url", "u", "", "qr code decoded url")
+	createFlags.StringVarP(&path, "path", "p", "~/.secrets", "path to save otp")
+	rootCmd.AddCommand(show)
 
 	showFlags := show.Flags()
 	showFlags.StringVarP(&proto, "proto", "p", "raw", "proto")
@@ -79,6 +93,8 @@ func main() {
 		bgclr = "#000000"
 	}
 	showFlags.StringVarP(&renderOptions.BackgroundColor, "background", "b", "#000000", "background color")
+
+	showFlags.StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
