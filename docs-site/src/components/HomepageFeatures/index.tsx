@@ -13,7 +13,24 @@ const FeatureList: FeatureItem[] = [
     title: 'Easy to Use',
     description: (
       <>
-        Easily create and reuse otps
+        Store your seed locally with <code>otplet create</code> and use it with <code>otplet show</code>.
+      </>
+    ),
+
+  },
+  {
+    title: 'Secure',
+    description: (
+      <>
+        Your seed is encrypted using and RSA key protected with a passphrase.
+      </>
+    ),
+  },
+  {
+    title: 'Open Source',
+    description: (
+      <>
+        Otplet is open source and available on GitHub.
       </>
     ),
   },

@@ -1,0 +1,85 @@
+---
+sidebar_position: 6
+---
+
+# Getting Started
+
+How to create an encrypted OTP setup and display codes via CLI or bar integration.
+
+## Requirements
+
+
+- `gpg`
+- `gpgconf`
+- `gpg-agent`
+- `otplet`
+
+`GPG` handles encryption/decryption of OTP secrets, `otplet` manages storage and code generation
+
+
+## How It Works
+
+1. Obtain OTP seed (QR code from provider)
+2. Decode QR → extract URL
+3. Use `otplet create` to store it encrypted
+4. Use `otplet show` to generate codes
+
+
+Typical parameters inside OTP URL:
+
+* `algorithm`
+* `period`
+* `issuer`
+* `type`
+
+## URL format
+
+```text
+otpauth://<type>/<site>:<user>?secret=<secret>&issuer=<issuer>&algorithm=<algorithm>&digits=<digits>&period=<period>
+```
+
+URL contains all OTP configuration, `otplet` parses and persists it securely.
+
+## Bar Integration
+
+Display OTP continuously in a status bar.
+
+### Example (i3blocks)
+
+```toml
+[otplet]
+command=~/.local/share/blocklets/otplet show --store ~/.secrets --recipient key@foo.bar --proto i3blocks --background '#282a36' --color 'f8f8f2'
+label=
+interval=1
+```
+
+- `--store` → path to encrypted OTP store
+- `--recipient` → GPG key
+- `--proto` → output format for the bar
+- `--background`, `--color` → UI customization
+
+* Runs every interval (1s)
+* Outputs formatted OTP for rendering
+
+## Event Handling
+
+**Supported interactions (i3blocks default)**
+
+* Left click → unlock GPG key
+* Right click → lock GPG key
+
+Events forwarded automatically to otplet, no external scripting required. Events read from env variable.
+
+## Alternative Bar Integration
+
+If events are not automatic you can optionally:
+
+- Map bar events → execute:
+  - `otplet lock`
+  - `otplet unlock`
+- Or use a wrapper script to:
+  - Receive signals
+  - Call correct command
+
+The manual control over key state is required for bars without native event passthrough.
+

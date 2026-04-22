@@ -11,7 +11,13 @@ const config: Config = {
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
   future: {
-    v4: true, // Improve compatibility with the upcoming Docusaurus v4
+    v4: false, // Improve compatibility with the upcoming Docusaurus v4
+    
+  faster: {
+    rspackBundler: false,
+  },
+
+    
   },
 
   // Set the production url of your site here
@@ -43,8 +49,8 @@ const config: Config = {
           sidebarPath: './sidebars.ts',
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://otplet.cassano.fe.it/',
+          // editUrl:
+          //   'https://otplet.cassano.fe.it/',
         },
         theme: {
           customCss: './src/css/custom.css',
@@ -63,14 +69,14 @@ const config: Config = {
       title: 'OTPLet',
       logo: {
         alt: 'OTPLet Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
         {
           type: 'docSidebar',
           sidebarId: 'tutorialSidebar',
           position: 'left',
-          label: 'Tutorial',
+          label: 'Docs',
         },
         // {to: '/blog', label: 'Blog', position: 'left'},
         {
