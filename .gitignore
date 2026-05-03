@@ -48,5 +48,5 @@ Thumbs.db
 *.mov
 *.wmv
 *.code-workspace
-
-
+coverage.*
+test-results.json
