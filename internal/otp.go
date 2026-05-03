@@ -5,12 +5,25 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
+	"strings"
 	"sync/atomic"
 	"time"
 
 	otplib "github.com/pquerna/otp"
 	totp "github.com/pquerna/otp/totp"
 )
+
+func expandPath(path string) (string, error) {
+	if strings.HasPrefix(path, "~") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", err
+		}
+		path = strings.Replace(path, "~", home, 1)
+	}
+	return filepath.Abs(path)
+}
 
 type PassCode struct {
 	Code       string
@@ -24,7 +37,11 @@ func (p PassCode) IsValid() bool {
 }
 
 func LoadTokenFromFile(path string) (*otplib.Key, error) {
-	hdlr, err := os.OpenFile(path, os.O_RDONLY, 0600)
+	expandedPath, err := expandPath(path)
+	if err != nil {
+		return nil, err
+	}
+	hdlr, err := os.OpenFile(expandedPath, os.O_RDONLY, 0600)
 	if err != nil {
 		return nil, err
 	}
@@ -56,7 +73,11 @@ func SaveGenerator(url string, path string) error {
 }
 
 func SaveTokenToFile(path string, key *otplib.Key) error {
-	hdlr, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+	expandedPath, err := expandPath(path)
+	if err != nil {
+		return err
+	}
+	hdlr, err := os.OpenFile(expandedPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
 	if err != nil {
 		return err
 	}

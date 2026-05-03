@@ -40,8 +40,7 @@ func main() {
 				log.Default().Printf("Error saving OTP generator: %v\n", err)
 				os.Exit(1)
 			}
-			// setup := token.New(name,secret)
-			// setup.store()
+
 		},
 	}
 
