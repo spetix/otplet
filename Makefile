@@ -22,10 +22,10 @@ bin/$(PROJECT_NAME)-linux-amd64:
 # 	mkdir -p bin/windows-amd64
 # 	GOOS=windows GOARCH=amd64 go build -v -o bin/days2xmaslet-windows-amd64.exe ./cmd/...
 
-bin/$(PROJECT_NAME)-linux-arm64:
-	@echo "Building linux-arm64"
-	mkdir -p bin
-	GOOS=linux GOARCH=arm64 go build -v -o bin/$(PROJECT_NAME)-linux-arm64 ./cmd/...
+#bin/$(PROJECT_NAME)-linux-arm64:
+#	@echo "Building linux-arm64"
+#	mkdir -p bin
+#	GOOS=linux GOARCH=arm64 go build -v -o bin/$(PROJECT_NAME)-linux-arm64 ./cmd/...
 
 
 
@@ -33,7 +33,7 @@ bin/$(PROJECT_NAME)-linux-arm64:
 .PHONY: build
 build: setup
 	$(MAKE) bin/$(PROJECT_NAME)-linux-amd64
-	$(MAKE) bin/$(PROJECT_NAME)-linux-arm64
+#	$(MAKE) bin/$(PROJECT_NAME)-linux-arm64
 
 
 # TODO clean binaries
