@@ -39,7 +39,7 @@ build: setup
 # TODO clean binaries
 clean:
 	go clean ./cmd/...
-	rm -Rf bin
+	rm -Rf bin/*
 	rm -f test-result*.json
 	rm -f coverage.*
 
