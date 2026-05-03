@@ -48,7 +48,7 @@ test: build
 
 # TODO run tests
 test-results.json:
-	go test -race -json -v -coverprofile=coverage.txt ./... 2>&1 | tee test-results.json | gotestfmt
+	go test -race -json -v -coverprofile=coverage.txt ./... | tee test-results.json
 
 coverage: test
 	$(MAKE) coverage.xml
