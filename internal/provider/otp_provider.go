@@ -10,6 +10,21 @@ import (
 	"github.com/spetix/otplet/internal/onetimepass"
 )
 
+type OtpProviderItf interface {
+	GetCode() *onetimepass.PassCode
+}
+
+type DummyOtpProvider struct{}
+
+func (d *DummyOtpProvider) GetCode() *onetimepass.PassCode {
+	return &onetimepass.PassCode{
+		Code:       "unlock",
+		ValidUntil: time.Now().Add(30 * time.Second),
+		Remaining:  30 * time.Second,
+		Error:      nil,
+	}
+}
+
 // OtpProvider generates time-based one-time passwords and keeps a current code
 // available through atomic storage so render consumers can read updates safely.
 type OtpProvider struct {

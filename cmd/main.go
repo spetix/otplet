@@ -7,7 +7,7 @@ import (
 	"fmt"
 
 	"github.com/spetix/bar-out-adapters/pkg/barout"
-	otp "github.com/spetix/otplet/internal/provider"
+	"github.com/spetix/otplet/internal/events"
 	"github.com/spetix/otplet/internal/render"
 	"github.com/spetix/otplet/internal/secretmanager"
 	"github.com/spf13/cobra"
@@ -55,20 +55,45 @@ func main() {
 			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
+			// Handle i3blocks click events
+			eventId := os.Getenv("BLOCK_BUTTON")
+
+			cm := events.ClickManager{}
+			sm := cm.HandleClickEvents(eventId, otpStore, recipient)
+
 			b := barout.New(proto)
-			sm := secretmanager.NewSecretManager(otpStore, recipient)
-			key, err := sm.LoadTokenFromFile()
+			otpProvider, err := sm.LoadTokenFromFile()
 			if err != nil {
-				fmt.Printf("Error loading OTP key: %v\n", err)
+				log.Default().Printf("Error loading OTP provider: %v\n", err)
 				os.Exit(1)
 			}
-			otpProvider := otp.NewOtpProvider(key)
+
 			if otpProvider == nil {
 				os.Exit(1)
 			}
 			data := render.OtpDataNew(otpProvider, &renderOptions)
 
 			b.Print(data)
+		},
+	}
+
+	lock := &cobra.Command{
+		Use:   "lock",
+		Short: "lock GPG key",
+		Run: func(cmd *cobra.Command, args []string) {
+			cm := events.ClickManager{}
+			cm.HandleClickEvents("3", otpStore, recipient)
+			fmt.Println("GPG key locked")
+		},
+	}
+
+	unlock := &cobra.Command{
+		Use:   "unlock",
+		Short: "unlock GPG key",
+		Run: func(cmd *cobra.Command, args []string) {
+			cm := events.ClickManager{}
+			cm.HandleClickEvents("1", otpStore, recipient)
+			fmt.Println("GPG key unlocked")
 		},
 	}
 
@@ -101,6 +126,12 @@ func main() {
 
 	showFlags.StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 	showFlags.StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+
+	rootCmd.AddCommand(lock)
+
+	rootCmd.AddCommand(unlock)
+	unlock.Flags().StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+	unlock.Flags().StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)

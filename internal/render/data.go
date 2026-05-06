@@ -19,7 +19,7 @@ type RenderOptions struct {
 // OtpData implements the bar-out data interface for OTP display.
 type OtpData struct {
 	data.Data
-	otp     *provider.OtpProvider
+	otp     provider.OtpProviderItf
 	options *RenderOptions
 }
 
@@ -64,9 +64,23 @@ func (d *OtpData) Label() string {
 	return d.options.Label
 }
 
+// OnClick returns the command to execute when the blocklet is left-clicked.
+// This unlocks the GPG key so it won't prompt for passphrase on next use.
+func (d *OtpData) OnClick() string {
+	// The command runs gpg-connect-agent to cache the passphrase
+	return "gpg-connect-agent updatestatus /bye"
+}
+
+// OnRightClick returns the command to execute when the blocklet is right-clicked.
+// This blocks the GPG key by killing the agent, clearing the cached passphrase.
+func (d *OtpData) OnRightClick() string {
+	// The command kills the gpg-agent to clear cached passphrases
+	return "gpgconf --kill gpg-agent"
+}
+
 // OtpDataNew constructs a new render data instance for the given provider and
 // render options.
-func OtpDataNew(otp *provider.OtpProvider, renderOptions *RenderOptions) *OtpData {
+func OtpDataNew(otp provider.OtpProviderItf, renderOptions *RenderOptions) *OtpData {
 	return &OtpData{
 		options: renderOptions,
 		otp:     otp,
