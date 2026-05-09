@@ -11,6 +11,14 @@
             "mode": "debug",
             "program": "${file}",
             "args": ["create","--url=otpauth://totp/GitHub:spetix?secret=F362MLTIO2SFKHJC&;issuer=GitHub","--recipient=christian@cassano.fe.it","--path=~/.testgpg"]
-        }
+        },
+                {
+            "name": "Launch file",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "args": ["show","--url=otpauth://totp/GitHub:spetix?secret=F362MLTIO2SFKHJC&;issuer=GitHub","--recipient=christian@cassano.fe.it","--path=~/.testgpg"]
+        },
     ]
 }

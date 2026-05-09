@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,7 +26,7 @@ func (d *DummySecretManager) LoadTokenFromFile() (provider.OtpProviderItf, error
 	return &provider.DummyOtpProvider{}, nil
 }
 func (d *DummySecretManager) SaveGenerator(url string) error {
-	log.Default().Printf("DummySecretManager: SaveGenerator called with URL: %s\n", url)
+	slog.Debug("DummySecretManager: SaveGenerator called with URL: %s", url)
 	return nil
 }
 
@@ -115,7 +115,7 @@ func (sm *SecretManager) LoadTokenFromFile() (provider.OtpProviderItf, error) {
 	plaintext, err := sm.decryptIfNeeded(data)
 	if err != nil {
 		// unlock required sending dummy provider
-		log.Printf("Warning: failed to decrypt OTP store, returning dummy provider: %v\n", err)
+		slog.Warn("Warning: failed to decrypt OTP store, returning dummy provider: %v", err)
 		return &provider.DummyOtpProvider{}, nil
 	}
 
@@ -130,8 +130,8 @@ func (sm *SecretManager) LoadTokenFromFile() (provider.OtpProviderItf, error) {
 	}
 
 	if err != nil {
-		fmt.Printf("Error loading OTP key: %v\n", err)
-		os.Exit(1)
+		slog.Warn("Error loading OTP key: %v", err)
+		return &provider.DummyOtpProvider{}, nil
 	}
 	otpProvider := provider.NewOtpProvider(key)
 
@@ -142,7 +142,7 @@ func (sm *SecretManager) SaveGenerator(url string) error {
 	if url == "" {
 		return fmt.Errorf("URL cannot be empty")
 	}
-	log.Default().Printf("Importing OTP generator with URL: %s to path: %s\n", url, sm.location)
+	slog.Info("Importing OTP generator with URL: %s to path: %s", url, sm.location)
 	key, err := otplib.NewKeyFromURL(url)
 	if err != nil {
 		return err
@@ -168,7 +168,7 @@ func (sm *SecretManager) saveTokenToFile(key *otplib.Key) error {
 		if err := os.WriteFile(expandedPath, ciphertext, 0600); err != nil {
 			return err
 		}
-		log.Default().Printf("Encrypted OTP generator saved to %s\n", sm.location)
+		slog.Info("Encrypted OTP generator saved to %s", sm.location)
 		return nil
 	}
 
@@ -182,7 +182,7 @@ func (sm *SecretManager) saveTokenToFile(key *otplib.Key) error {
 	if err := enc.Encode(key.URL()); err != nil {
 		return err
 	}
-	log.Default().Printf("OTP generator saved to %s\n", sm.location)
+	slog.Info("OTP generator saved to %s", sm.location)
 
 	return nil
 }
