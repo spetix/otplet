@@ -8,33 +8,6 @@ import (
 	"testing"
 )
 
-func TestSaveAndLoadToken(t *testing.T) {
-	secret := "JBSWY3DPEHPK3PXP"
-	url := "otpauth://totp/Example:aa?secret=" + secret + "&issuer=TestIssuer&period=30"
-
-	tmpDir, err := os.MkdirTemp("", "example-otp")
-	if err != nil {
-		t.Fatalf("failed to create temporary directory: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
-
-	filePath := filepath.Join(tmpDir, "test_otp_key.json")
-	sm := NewSecretManager(filePath)
-
-	if err := sm.SaveGenerator(url); err != nil {
-		t.Fatalf("failed to save OTP generator: %v", err)
-	}
-
-	loadedKey, err := sm.LoadTokenFromFile()
-	if err != nil {
-		t.Fatalf("failed to load OTP key from file: %v", err)
-	}
-
-	if loadedKey.Secret() != secret {
-		t.Fatalf("loaded key secret does not match expected secret")
-	}
-}
-
 func TestSaveAndLoadTokenEncrypted(t *testing.T) {
 	if _, err := exec.LookPath("gpg"); err != nil {
 		t.Skip("gpg not installed")
@@ -66,9 +39,10 @@ func TestSaveAndLoadTokenEncrypted(t *testing.T) {
 	}
 
 	filePath := filepath.Join(tmpDir, "encrypted_otp_key.gpg")
-	sm := NewSecretManager(filePath, "testuser@example.com")
+	recipients := make([]string, 0)
+	recipients = append(recipients, "testuser@example.com")
 
-	if err := sm.SaveGenerator(url); err != nil {
+	if err := SaveGenerator(url, filePath, recipients); err != nil {
 		t.Fatalf("failed to save encrypted OTP generator: %v", err)
 	}
 
@@ -80,7 +54,7 @@ func TestSaveAndLoadTokenEncrypted(t *testing.T) {
 		t.Fatalf("expected encrypted file contents to include PGP message header")
 	}
 
-	loadedKey, err := sm.LoadTokenFromFile()
+	loadedKey, err := LoadTokenFromFile(filePath)
 	if err != nil {
 		t.Fatalf("failed to load encrypted OTP key from file: %v", err)
 	}

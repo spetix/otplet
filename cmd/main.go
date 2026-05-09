@@ -14,16 +14,14 @@ func NewMainCommand() *cobra.Command {
 	main := &cobra.Command{
 		Use:   "otplet",
 		Short: "manage your otps in a smart way",
-		PreRunE: func(cmd *cobra.Command, args []string) error {
+		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 			logLevel, err := cmd.Flags().GetString("logLevel")
 			if err != nil {
 				return err
 			}
-			logFile, err := cmd.PersistentFlags().GetString("logFile")
-			if err != nil {
-				return err
-			}
-			logFormat, err := cmd.PersistentFlags().GetString("logFormat")
+			logFile := cmd.Flag("logFile").Value.String()
+
+			logFormat, err := cmd.Flags().GetString("logFormat")
 			if err != nil {
 				return err
 			}
@@ -39,6 +37,8 @@ func NewMainCommand() *cobra.Command {
 	main.PersistentFlags().StringP("logLevel", "l", "info", "log level (default is info)")
 	main.PersistentFlags().StringP("logFile", "f", "", "log file path (default is stdout)")
 	main.PersistentFlags().StringP("logFormat", "F", "text", "log format (default is text, options are text and json)")
+	main.PersistentFlags().StringP("store", "s", "otp.json", "path to otp store")
+
 	return main
 }
 

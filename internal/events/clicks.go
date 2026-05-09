@@ -2,33 +2,25 @@ package events
 
 import (
 	"crypto/rand"
-	"log"
+	"fmt"
 	"os"
 	"os/exec"
-
-	"github.com/spetix/otplet/internal/secretmanager"
 )
 
 type ClickManager struct{}
 
-// HandleClickEvents handles mouse click events from i3blocks
 // BLOCK_BUTTON environment variable: 1=left, 3=right
-func (cm *ClickManager) HandleClickEvents(eventId string, otpStore string, recipient string) (sm secretmanager.SecretManagerItf) {
+func (cm *ClickManager) HandleClickEvents(eventId string, otpStore string, recipient string) error {
 	switch eventId {
 	case "1":
-		// Left click - unlock GPG key
-		if err := triggerGPGPopup(recipient); err != nil {
-			log.Printf("Warning: failed to unlock GPG key: %v\n", err)
-			return &secretmanager.DummySecretManager{}
-		}
+		return triggerGPGPopup(recipient)
 	case "3":
 		// Right click - lock GPG key
 		cmd := exec.Command("gpgconf", "--kill", "gpg-agent")
-		if err := cmd.Run(); err != nil {
-			log.Printf("Warning: failed to lock GPG key: %v\n", err)
-		}
+		cmd.Run()
+		return fmt.Errorf("GPG key locked")
 	}
-	return secretmanager.NewSecretManager(otpStore, recipient)
+	return nil
 }
 
 func triggerGPGPopup(recipient string) error {

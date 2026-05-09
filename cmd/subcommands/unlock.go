@@ -9,20 +9,20 @@ import (
 )
 
 func NewUnlockCommand() *cobra.Command {
-	var otpStore string
 	var recipient string
 	unlock := &cobra.Command{
 		Use:   "unlock",
 		Short: "unlock GPG key",
 		Run: func(cmd *cobra.Command, args []string) {
 			cm := events.ClickManager{}
+			otpStore := cmd.Flag("store").Value.String()
+			slog.Info("Unlocking GPG key for OTP store", "store", otpStore, "recipient", recipient)
 			cm.HandleClickEvents("1", otpStore, recipient)
 			fmt.Println("GPG key unlocked")
 		},
 	}
 
 	unlock.Flags().StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
-	unlock.Flags().StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 	slog.Info("Unlock command registered")
 	return unlock
 }

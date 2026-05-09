@@ -8,7 +8,6 @@ import (
 )
 
 func NewLockCommand() *cobra.Command {
-	var otpStore string
 	var recipient string
 
 	lock := &cobra.Command{
@@ -16,13 +15,14 @@ func NewLockCommand() *cobra.Command {
 		Short: "lock GPG key",
 		Run: func(cmd *cobra.Command, args []string) {
 			cm := events.ClickManager{}
+			otpStore := cmd.Flag("store").Value.String()
+			slog.Info("Locking GPG key for OTP store", "store", otpStore, "recipient", recipient)
 			cm.HandleClickEvents("3", otpStore, recipient)
 			slog.Info("GPG key locked")
 		},
 	}
 
 	lock.Flags().StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
-	lock.Flags().StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 
 	slog.Info("Lock command registered")
 	return lock

@@ -7,14 +7,15 @@ import (
 
 	"github.com/spetix/bar-out-adapters/pkg/barout"
 	"github.com/spetix/otplet/internal/events"
+	"github.com/spetix/otplet/internal/provider"
 	"github.com/spetix/otplet/internal/render"
+	"github.com/spetix/otplet/internal/secretmanager"
 	"github.com/spf13/cobra"
 )
 
 func NewShowCommand() *cobra.Command {
 	var recipient string
 	var proto string
-	var otpStore string
 	var renderOptions render.RenderOptions
 
 	show := &cobra.Command{
@@ -25,18 +26,22 @@ func NewShowCommand() *cobra.Command {
 			eventId := os.Getenv("BLOCK_BUTTON")
 
 			cm := events.ClickManager{}
-			sm := cm.HandleClickEvents(eventId, otpStore, recipient)
+			otpStore := cmd.Flag("store").Value.String()
+			slog.Info("Using seed in store", "store", otpStore)
+			err := cm.HandleClickEvents(eventId, otpStore, recipient)
+			var pv provider.OtpProviderItf
+			if err != nil {
+				pv = provider.NewDummyProvider()
+			} else {
+				pv, err = secretmanager.LoadTokenFromFile(otpStore)
+			}
 
 			b := barout.New(proto)
-			otpProvider, err := sm.LoadTokenFromFile()
-			if err != nil {
-				return err
-			}
 
-			if otpProvider == nil {
+			if pv == nil {
 				return fmt.Errorf("OTP provider not found")
 			}
-			data := render.OtpDataNew(otpProvider, &renderOptions)
+			data := render.OtpDataNew(pv, &renderOptions)
 
 			b.Print(data)
 			return nil
@@ -49,8 +54,8 @@ func NewShowCommand() *cobra.Command {
 	if lbl == "" {
 		lbl = "🎄"
 	}
-	showFlags.StringVarP(&renderOptions.Label, "label", "l", lbl, "label")
-	showFlags.StringVarP(&renderOptions.Format, "format", "f", "text", "format")
+	showFlags.StringVarP(&renderOptions.Label, "label", "L", lbl, "label")
+	showFlags.StringVarP(&renderOptions.Format, "format", "R", "text", "format")
 	clr := os.Getenv("color")
 	if clr == "" {
 		clr = "#ff0000"
@@ -62,7 +67,6 @@ func NewShowCommand() *cobra.Command {
 	}
 	showFlags.StringVarP(&renderOptions.BackgroundColor, "background", "b", "#000000", "background color")
 
-	showFlags.StringVarP(&otpStore, "store", "s", "otp.json", "path to otp store")
 	showFlags.StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
 
 	slog.Info("Show command registered")

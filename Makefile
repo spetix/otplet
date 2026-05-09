@@ -10,23 +10,12 @@ setup:
 bin/$(PROJECT_NAME)-linux-amd64: 
 	@echo "Building linux-amd64"
 	@mkdir -p bin
-	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o bin/$(PROJECT_NAME)-linux-amd64 ./cmd/...
-
-# bin/days2xmaslet-darwin-amd64:
-# 	@echo "Building darwin-amd64"
-# 	mkdir -p bin
-# 	GOOS=darwin GOARCH=amd64 go build -v -o bin/days2xmaslet-darwin-amd64 ./cmd/...
-
-# bin/days2xmaslet-windows-amd64.exe:
-# 	@echo "Building windows-amd64"
-# 	mkdir -p bin/windows-amd64
-# 	GOOS=windows GOARCH=amd64 go build -v -o bin/days2xmaslet-windows-amd64.exe ./cmd/...
+	@CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o bin/$(PROJECT_NAME)-linux-amd64 ./cmd/main.go
 
 bin/$(PROJECT_NAME)-linux-arm64:
 	@echo "Building linux-arm64"
 	mkdir -p bin
-	GOOS=linux GOARCH=arm64 go build -v -o bin/$(PROJECT_NAME)-linux-arm64 ./cmd/...
-
+	GOOS=linux GOARCH=arm64 go build -v -o bin/$(PROJECT_NAME)-linux-arm64 ./cmd/main.go
 
 
 # Define the build-all target
