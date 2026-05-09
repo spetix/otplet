@@ -10,15 +10,39 @@ import (
 	"github.com/spetix/otplet/internal/onetimepass"
 )
 
+type OtpProviderItf interface {
+	GetCode() *onetimepass.PassCode
+	Secret() string
+}
+
+type dummyOtpProvider struct{}
+
+func NewDummyProvider() OtpProviderItf {
+	return &dummyOtpProvider{}
+}
+
+func (d *dummyOtpProvider) GetCode() *onetimepass.PassCode {
+	return &onetimepass.PassCode{
+		Code:       "󱧚",
+		ValidUntil: time.Now().Add(30 * time.Second),
+		Remaining:  30 * time.Second,
+		Error:      nil,
+	}
+}
+
+func (d *dummyOtpProvider) Secret() string {
+	return "dummy"
+}
+
 // OtpProvider generates time-based one-time passwords and keeps a current code
 // available through atomic storage so render consumers can read updates safely.
-type OtpProvider struct {
+type otpProvider struct {
 	Key  *otplib.Key
 	Code atomic.Pointer[onetimepass.PassCode]
 }
 
-func NewOtpProvider(key *otplib.Key) *OtpProvider {
-	provider := &OtpProvider{
+func NewOtpProvider(key *otplib.Key) *otpProvider {
+	provider := &otpProvider{
 		Key: key,
 		// atomic.Pointer zero value is fine, but we populate it immediately
 		Code: atomic.Pointer[onetimepass.PassCode]{},
@@ -32,7 +56,7 @@ func NewOtpProvider(key *otplib.Key) *OtpProvider {
 	return provider
 }
 
-func (p *OtpProvider) otpCode() {
+func (p *otpProvider) otpCode() {
 	now, remaining := getTime(p.Key.Period())
 	validUntil := now.Add(remaining)
 	code, err := totp.GenerateCodeCustom(p.Key.Secret(), time.Now().UTC(), totp.ValidateOpts{
@@ -51,7 +75,7 @@ func (p *OtpProvider) otpCode() {
 	p.Code.Store(codeVal)
 }
 
-func (p *OtpProvider) start() {
+func (p *otpProvider) start() {
 	period := time.Duration(p.Key.Period()) * time.Second
 	ticker := time.NewTicker(period)
 	defer ticker.Stop()
@@ -62,8 +86,12 @@ func (p *OtpProvider) start() {
 }
 
 // GetCode returns the latest generated OTP code, or nil if generation failed.
-func (p *OtpProvider) GetCode() *onetimepass.PassCode {
+func (p *otpProvider) GetCode() *onetimepass.PassCode {
 	return p.Code.Load()
+}
+
+func (p *otpProvider) Secret() string {
+	return p.Key.Secret()
 }
 
 // getTime returns the current UTC time and the remaining duration for the

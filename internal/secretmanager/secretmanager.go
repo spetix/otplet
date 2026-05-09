@@ -5,25 +5,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
+	"log/slog"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 
 	otplib "github.com/pquerna/otp"
-	"github.com/proglottis/gpgme"
+	"github.com/spetix/otplet/internal/provider"
 )
-
-// SecretManager manages a file path used to save and load OTP key URLs.
-type SecretManager struct {
-	location   string
-	recipients []string
-}
-
-func NewSecretManager(location string, recipients ...string) SecretManager {
-	return SecretManager{location: location, recipients: recipients}
-}
 
 func expandPath(path string) (string, error) {
 	if strings.HasPrefix(path, "~") {
@@ -40,106 +30,52 @@ func looksLikePGPMessage(data []byte) bool {
 	return bytes.Contains(data, []byte("-----BEGIN PGP MESSAGE-----"))
 }
 
-func newGPGMECtx() (*gpgme.Context, error) {
-	ctx, err := gpgme.New()
-	if err != nil {
-		return nil, err
+func decryptIfNeeded(ciphertext []byte) ([]byte, error) {
+	cmd := exec.Command("gpg", "--decrypt", "--quiet", "--batch", "--pinentry-mode", "error")
+	cmd.Stdin = bytes.NewReader(ciphertext)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("gpg decrypt failed: %w (stderr: %s)", err, stderr.String())
 	}
-	if err := ctx.SetProtocol(gpgme.ProtocolOpenPGP); err != nil {
-		ctx.Release()
-		return nil, err
-	}
-	ctx.SetArmor(true)
-	return ctx, nil
+
+	return stdout.Bytes(), nil
 }
 
-func (sm SecretManager) decryptIfNeeded(ciphertext []byte) ([]byte, error) {
-	ctx, err := newGPGMECtx()
-	if err != nil {
-		return nil, err
-	}
-	defer ctx.Release()
-
-	cipherData, err := gpgme.NewDataBytes(ciphertext)
-	if err != nil {
-		return nil, err
-	}
-	defer cipherData.Close()
-
-	plainData, err := gpgme.NewData()
-	if err != nil {
-		return nil, err
-	}
-	defer plainData.Close()
-
-	if err := ctx.Decrypt(cipherData, plainData); err != nil {
-		return nil, err
-	}
-	if _, err := plainData.Seek(0, io.SeekStart); err != nil {
-		return nil, err
-	}
-
-	return io.ReadAll(plainData)
-}
-
-func (sm SecretManager) encryptData(plaintext []byte) ([]byte, error) {
-	if len(sm.recipients) == 0 {
+func encryptData(plaintext []byte, recipients []string) ([]byte, error) {
+	if len(recipients) == 0 {
 		return nil, fmt.Errorf("missing GPG recipient")
 	}
 
-	ctx, err := newGPGMECtx()
-	if err != nil {
-		return nil, err
+	// Build gpg command with recipients
+	args := []string{"--encrypt", "--armor", "--quiet", "--batch", "--no-tty"}
+	for _, recipient := range recipients {
+		args = append(args, "--recipient", recipient)
 	}
-	defer ctx.Release()
+	args = append(args, "--trust-model", "always")
 
-	recipients := make([]*gpgme.Key, 0, len(sm.recipients))
-	for _, recipient := range sm.recipients {
-		keys, err := gpgme.FindKeys(recipient, false)
-		if err != nil {
-			return nil, fmt.Errorf("failed to search for recipient %q: %w", recipient, err)
-		}
-		if len(keys) == 0 {
-			return nil, fmt.Errorf("recipient %q not found", recipient)
-		}
-		key := keys[0]
-		if !key.CanEncrypt() {
-			key.Release()
-			return nil, fmt.Errorf("recipient %q cannot encrypt", recipient)
-		}
-		recipients = append(recipients, key)
-	}
-	defer func() {
-		for _, key := range recipients {
-			key.Release()
-		}
-	}()
+	cmd := exec.Command("gpg", args...)
+	cmd.Stdin = bytes.NewReader(plaintext)
 
-	plainData, err := gpgme.NewDataBytes(plaintext)
-	if err != nil {
-		return nil, err
-	}
-	defer plainData.Close()
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
-	cipherData, err := gpgme.NewData()
-	if err != nil {
-		return nil, err
-	}
-	defer cipherData.Close()
-
-	if err := ctx.Encrypt(recipients, gpgme.EncryptAlwaysTrust, plainData, cipherData); err != nil {
-		return nil, err
-	}
-	if _, err := cipherData.Seek(0, io.SeekStart); err != nil {
-		return nil, err
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("gpg encrypt failed: %w (stderr: %s)", err, stderr.String())
 	}
 
-	return io.ReadAll(cipherData)
+	return stdout.Bytes(), nil
 }
 
 // LoadTokenFromFile reads the stored OTP generator URL from disk and returns the parsed key.
-func (sm SecretManager) LoadTokenFromFile() (*otplib.Key, error) {
-	expandedPath, err := expandPath(sm.location)
+func LoadTokenFromFile(location string) (provider.OtpProviderItf, error) {
+	expandedPath, err := expandPath(location)
 	if err != nil {
 		return nil, err
 	}
@@ -149,12 +85,11 @@ func (sm SecretManager) LoadTokenFromFile() (*otplib.Key, error) {
 		return nil, err
 	}
 
-	plaintext, err := sm.decryptIfNeeded(data)
+	plaintext, err := decryptIfNeeded(data)
 	if err != nil {
-		if looksLikePGPMessage(data) {
-			return nil, err
-		}
-		plaintext = data
+		// unlock required sending dummy provider
+		slog.Warn("Warning: failed to decrypt OTP store, returning dummy provider", "error", err)
+		return provider.NewDummyProvider(), nil
 	}
 
 	var keyUrl string
@@ -167,40 +102,47 @@ func (sm SecretManager) LoadTokenFromFile() (*otplib.Key, error) {
 		return nil, err
 	}
 
-	return key, nil
+	if err != nil {
+		slog.Warn("Error loading OTP key", "error", err)
+		return provider.NewDummyProvider(), nil
+	}
+	otpProvider := provider.NewOtpProvider(key)
+
+	return otpProvider, nil
 }
 
-func (sm SecretManager) SaveGenerator(url string) error {
+func SaveGenerator(url string, location string, recipients []string) error {
 	if url == "" {
 		return fmt.Errorf("URL cannot be empty")
 	}
-	log.Default().Printf("Importing OTP generator with URL: %s to path: %s\n", url, sm.location)
+	slog.Info("Importing OTP generator", "location", location, "recipients", recipients)
+	slog.Debug("Seed",
+		"url", url,
+	)
 	key, err := otplib.NewKeyFromURL(url)
 	if err != nil {
 		return err
 	}
-	return sm.saveTokenToFile(key)
-}
-
-func (sm SecretManager) saveTokenToFile(key *otplib.Key) error {
-	expandedPath, err := expandPath(sm.location)
+	expandedPath, err := expandPath(location)
 	if err != nil {
 		return err
 	}
 
-	if len(sm.recipients) > 0 {
+	if len(recipients) > 0 {
 		payload, err := json.Marshal(key.URL())
 		if err != nil {
 			return err
 		}
-		ciphertext, err := sm.encryptData(payload)
+		ciphertext, err := encryptData(payload, recipients)
 		if err != nil {
 			return err
 		}
 		if err := os.WriteFile(expandedPath, ciphertext, 0600); err != nil {
 			return err
 		}
-		log.Default().Printf("Encrypted OTP generator saved to %s\n", sm.location)
+		slog.Info("Encrypted OTP generator saved",
+			"location", location,
+		)
 		return nil
 	}
 
@@ -214,7 +156,10 @@ func (sm SecretManager) saveTokenToFile(key *otplib.Key) error {
 	if err := enc.Encode(key.URL()); err != nil {
 		return err
 	}
-	log.Default().Printf("OTP generator saved to %s\n", sm.location)
+	slog.Info("OTP generator saved",
+		"location", location,
+	)
 
 	return nil
+
 }
