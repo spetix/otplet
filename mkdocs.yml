@@ -1,0 +1,6 @@
+site_name: otplet
+site_dir: site
+docs_dir: docs
+
+plugins: 
+- mike
