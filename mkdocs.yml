@@ -4,3 +4,13 @@ docs_dir: docs
 
 plugins: 
 - mike
+
+theme:
+  name: material
+  palette:
+    scheme: slate
+    primary: deep purple
+    accent: cyan
+
+extra_css:
+  - /assets/theme.css
