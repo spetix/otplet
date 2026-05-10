@@ -43,4 +43,4 @@ jobs:
           mike deploy --branch gh-pages --push --update-aliases "${{ github.ref_name }}" latest --prefix docs
 
       - name: Deploy versions.json
-          run: mike list --json > versions.json
+        run: mike list --json > versions.json
