@@ -34,7 +34,7 @@ jobs:
       - name: Deploy dev docs
         if: startsWith(github.ref, 'refs/heads/')
         run: |
-          mike deploy --branch gh-pages --push dev dev
+          mike deploy --branch gh-pages --push main dev
 
       # tag vX.Y.Z → /vX.Y.Z/ + aggiorna /latest/
       - name: Deploy release docs
