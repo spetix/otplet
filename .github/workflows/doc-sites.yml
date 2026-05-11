@@ -29,6 +29,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Show mike version
+        run: mike --version
 
       # main → /dev/
       - name: Deploy dev docs
