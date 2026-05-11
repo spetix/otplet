@@ -1,0 +1,49 @@
+name: Create GH Pages (MkDocs + mike)
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install deps
+        run: pip install mkdocs mkdocs-material mike
+
+      - name: Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+      
+      - name: Show mike version
+        run: mike --version
+
+      # main → /dev/
+      - name: Deploy dev docs
+        if: startsWith(github.ref, 'refs/heads/')
+        run: |
+          mike deploy --branch gh-pages --push main dev --prefix docs
+
+      # tag vX.Y.Z → /vX.Y.Z/ + aggiorna /latest/
+      - name: Deploy release docs
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          mike deploy --branch gh-pages --push --update-aliases "${{ github.ref_name }}" latest --prefix docs
+
+      - name: Deploy versions.json
+        run: mike list --json > versions.json
