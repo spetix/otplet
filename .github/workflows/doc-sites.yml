@@ -29,7 +29,11 @@ jobs:
           python-version: "3.12"
 
       - name: Install deps
-        run: pip install mkdocs mkdocs-material mike
+        run: pip install mkdocs mkdocs-material "mike>=2.0.0"
+      - name: Show mike version
+        run: mike --version
+
+
 
       - name: Git identity
         run: |
