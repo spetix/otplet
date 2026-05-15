@@ -1,5 +1,9 @@
 name: Create GH Pages (MkDocs + mike)
-    tags: ["[0-9]*.[0-9]*.[0-9]*"] # glob-style, not regex
+
+on:
+  push:
+    branches: [ "main" ]
+    tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
   workflow_dispatch:
 
 permissions:
@@ -30,36 +34,41 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      # --- Sync landing site (main/site -> ghpages/site) ---
-      - name: Checkout ghpages branch
+      # ===============================
+      # ✅ Landing sync (main → gh-pages/site)
+      # ===============================
+      - name: Checkout gh-pages branch
         run: |
           git fetch origin gh-pages:gh-pages || true
           git checkout gh-pages || git checkout --orphan gh-pages
 
-      - name: Sync landing + assets from main
+      - name: Sync landing (preserve versions/)
         run: |
-          git rm -r --ignore-unmatch site
-          git checkout main -- site
+          mkdir -p site
+          rsync -av --delete \
+            --exclude versions \
+            $(git --git-dir=../.git --work-tree=../ checkout main -- site >/dev/null 2>&1 || echo main/site/) \
+            ../site/ ./site/ || true
+
           git add site
-          git commit -m "Sync landing site" || true
+          git commit -m "Sync landing site (preserve versions)" || true
           git push origin gh-pages
 
-      # --- Build + deploy docs with mike into site/versions ---
-      - name: Checkout main for docs build context
+      # ===============================
+      # ✅ Back to main for mike
+      # ===============================
+      - name: Checkout main for docs
         run: git checkout main
 
-      # main -> dev
+      # main → dev
       - name: Deploy dev docs
         if: startsWith(github.ref, 'refs/heads/main')
         run: |
           mike deploy --branch gh-pages --push --prefix site/versions dev
 
-      # tag x.y.z -> x.y.z + update latest + set default latest
+      # tag → version + latest
       - name: Deploy release docs
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          mike deploy --branch gh-pages --push --update-aliases --prefix site/versions "${{ github.ref_name }}" latest
+          mike deploy --branch gh-pages --push --update-aliases "${{ github.ref_name }}" latest --prefix site/versions
           mike set-default --branch gh-pages --push --prefix site/versions latest
-
-on:
-  push:
