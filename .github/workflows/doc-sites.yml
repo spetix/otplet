@@ -1,26 +1,32 @@
-name: Create GH Pages (MkDocs + mike)
+name: Deploy site (MkDocs + mike)
 
 on:
   push:
-    branches: [ "main" ]
-    tags: [ "[0-9]+.[0-9]+.[0-9]+" ]
+    branches: ["main"]
+    tags: ["[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      # checkout source
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      # python + deps
       - uses: actions/setup-python@v6
         with:
-          python-version: "3.14"
+          python-version: "3.12"
 
       - name: Install deps
         run: pip install mkdocs mkdocs-material mike
@@ -29,21 +35,47 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-      
-      - name: Show mike version
-        run: mike --version
 
-      # main → /dev/
-      - name: Deploy dev docs
-        if: startsWith(github.ref, 'refs/heads/')
+      # -------------------------
+      # 1. Sync landing (main/site → gh-pages root)
+      # -------------------------
+      - name: Checkout gh-pages
         run: |
-          mike deploy --branch gh-pages --push main dev --prefix docs
+          git fetch origin gh-pages:gh-pages || true
+          git checkout gh-pages || git checkout --orphan gh-pages
 
-      # tag vX.Y.Z → /vX.Y.Z/ + aggiorna /latest/
+      - name: Sync landing
+        run: |
+          # remove everything except versions/
+          find . -mindepth 1 -maxdepth 1 \
+            ! -name versions \
+            ! -name .git \
+            -exec rm -rf {} +
+
+          # copy landing
+          git checkout main -- site
+          mv site/* .
+          rm -rf site
+
+          git add .
+          git commit -m "Update landing site" || true
+          git push origin gh-pages
+
+      # -------------------------
+      # 2. Deploy docs with mike
+      # -------------------------
+      - name: Checkout main
+        run: git checkout main
+
+      # main → dev
+      - name: Deploy dev docs
+        if: startsWith(github.ref, 'refs/heads/main')
+        run: |
+          mike deploy --branch gh-pages --push --prefix versions dev
+
+      # tag → version + latest
       - name: Deploy release docs
         if: startsWith(github.ref, 'refs/tags/')
         run: |
-          mike deploy --branch gh-pages --push --update-aliases "${{ github.ref_name }}" latest --prefix docs
-
-      - name: Deploy versions.json
-        run: mike list --json > versions.json
+          mike deploy --branch gh-pages --push --update-aliases "${{ github.ref_name }}" latest --prefix versions
+          mike set-default --branch gh-pages --push --prefix versions latest
