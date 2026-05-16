@@ -1,6 +1,6 @@
 async function loadVersions() {
   try {
-    const res = await fetch('/versions.json');   // file at gh-pages root
+    const res = await fetch('/versions/versions.json');   // file at gh-pages root
     if (!res.ok) {
       throw new Error(`HTTP ${res.status}`);
     }
