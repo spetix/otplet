@@ -63,14 +63,16 @@ jobs:
       - name: Create coverage.svg badge
         if: github.ref == 'refs/heads/main'
         run: |
-          # Cobertura line-rate is a fraction (e.g. 0.83) -> percent
-          rate=$(grep -oP '(?<=line-rate=")[0-9.]+' coverage.xml | head -1)
           pct=$(python - <<'PY'
-          import os
-          r=float(os.environ["rate"])
-          print(int(round(r*100)))
+          import re, pathlib, math
+          xml = pathlib.Path("coverage.xml").read_text(encoding="utf-8", errors="ignore")
+          m = re.search(r'line-rate="([0-9.]+)"', xml)
+          if not m:
+              raise SystemExit("coverage.xml: line-rate not found")
+          rate = float(m.group(1))
+          print(int(round(rate * 100)))
           PY
-          
+
           )
           echo "Coverage: ${pct}%"
           # Color bands: <50 red, 50-74 yellow, >=75 green
