@@ -66,9 +66,9 @@ jobs:
           # Cobertura line-rate is a fraction (e.g. 0.83) -> percent
           rate=$(grep -oP '(?<=line-rate=")[0-9.]+' coverage.xml | head -1)
           pct=$(python - <<'PY'
-import os
-r=float(os.environ["rate"])
-print(int(round(r*100)))
+          import os
+          r=float(os.environ["rate"])
+          print(int(round(r*100)))
 PY
           )
           echo "Coverage: ${pct}%"
