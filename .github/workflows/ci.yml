@@ -69,7 +69,8 @@ jobs:
           import os
           r=float(os.environ["rate"])
           print(int(round(r*100)))
-PY
+          PY
+          
           )
           echo "Coverage: ${pct}%"
           # Color bands: <50 red, 50-74 yellow, >=75 green
