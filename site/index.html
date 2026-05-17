@@ -1,76 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Your Project</title>
 
-  <link rel="stylesheet" href="/assets/style.css" />
+  <link rel="stylesheet" href="assets/theme.css" />
 </head>
 
-<body>
-  <header>
-    <h1>Your Project</h1>
-    <p>Short description of what this project does</p>
-  </header>
 
-  <main>
+<div class="layout">
 
-    <section>
-      <h2>Documentation</h2>
-      <ul>
-        <li><a href="/versions/latest/">Latest documentation</a></li>
-        <li><a href="/versions/dev/">Development version</a></li>
-      </ul>
-    </section>
-
-    
-    <section>
-      <h2>Available Versions</h2>
+  <nav class="site-nav">
+    <p>&nbsp;</p>
+    <h2>Items</h2>
+    <ul class="nav-links" id="primary-nav">
+      <li><a href="https://github.com/spetix/otplet">Code</a></li>
+      <li><a href="https://github.com/spetix/otplet/issues">Issues</a></li>
       <ul id="versions-list">
         <!-- JS inserts here -->
       </ul>
-    </section>
+    </ul>
+  </nav>
+
+  <div class="content">
+    <header>
+      <button class="nav-toggle" aria-expanded="false">☰</button>
+      <h1>OTPLet</h1>
+    </header>
+
+    <main>
+
+      <section>
+        <h2>Documentation</h2>
+        <p>OTPLet is a simple widget that works under many bar and permits to store and safely use OTP tokens</p>
+        <ul>
+          <li><a href="/versions/latest/">Latest documentation</a></li>
+          <li><a href="/versions/dev/">Development version</a></li>
+        </ul>
+      </section>
 
 
-    <section>
-      <h2>Quick Links</h2>
+      <section>
+        <h2>Available Versions</h2>
+        <p>OTPLet documentation is available for the following versions:</p>
+      </section>
+
+
+     <section>
+        <h2>Getting Started</h2>
+        <p>To get started with OTPLet, check out the <a href="/versions/latest/getting-started/">Getting Started guide</a>.</p>
+     </section>
+
+    </main>
+
+    <footer>
       <ul>
-        <li><a href="/versions/latest/getting-started/">Getting started</a></li>
-        <li><a href="/versions/latest/api/">API reference</a></li>
+        <li><img src="https://img.shields.io/github/v/tag/spetix/otplet" alt="Latest version"></li>
+        <li><img src="https://github.com/spetix/otplet/actions/workflows/ci.yml/badge.svg?branch=main"
+            alt="Build status">
+        </li>
+        <li><img src="/coverage.svg" alt="Coverage"></li>
+        <li><img src="https://img.shields.io/github/license/spetix/otplet" alt="License"></li>
       </ul>
-    </section>
-
-    <section>
-  <h2>Status</h2>
-
-  <p>
-    <!-- Latest version -->
-    <img src="https://img.shields.io/github/v/tag/spetix/otplet"
-         alt="Latest version">
-
-    <!-- Build status -->
-   
-<img src="https://github.com/spetix/otplet/actions/workflows/ci.yml/badge.svg?branch=main"
-     alt="Build status">
-
-    <!-- Coverage -->
-    <img src="/coverage.svg"
-         alt="Coverage">
-
-    <!-- License (optional but standard) -->
-    <img src="https://img.shields.io/github/license/spetix/otplet"
-         alt="License">
-  </p>
-</section>
+    </footer>
+  </div>
 
 
-  </main>
+  <script src="assets/js/versions.js"></script>
+  <script src="assets/js/nav.js"></script>
+  </body>
 
-  <footer>
-    <p>© Your Project</p>
-  </footer>
-
-  <script src="/assets/js/versions.js"></script>
-</body>
 </html>

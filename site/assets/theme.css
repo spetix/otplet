@@ -23,6 +23,9 @@ body {
   background: var(--dracula-bg);
   color: var(--dracula-fg);
   font-family: var(--font-base);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 h1, h2, h3 {
@@ -34,4 +37,117 @@ a {
 }
 a:hover {
   color: var(--dracula-pink);
+}
+
+footer {
+  padding: 16px;
+  text-align: center;
+}
+
+footer ul {
+  list-style: none;      /* no bullets */
+  margin: 0;             /* remove default spacing */
+  padding: 0;
+  display: flex;         /* put <li> on one line */
+  justify-content: center; /* center horizontally */
+  align-items: center;   /* align vertically */
+  gap: 12px;             /* space between badges */
+  flex-wrap: wrap;     /* keep on one line */
+}
+
+footer li {
+  margin: 0;
+  padding: 0;
+}
+
+footer img {
+  display: block;        /* removes small baseline gaps */
+  height: 20px;          /* optional: unify badge height */
+}
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+  display: flex;
+  flex: 1;   /* ✅ important */
+}
+
+/* MAIN CONTENT */
+.content {
+  flex: 1;
+  transition: margin-left 0.3s ease;
+}
+
+/* NAV SIDEBAR */
+.site-nav {
+  width: 0;                     /* collapsed */
+  overflow: hidden;
+  transition: width 0.3s ease;
+  background: var(--dracula-bg);
+  }
+
+/* OPEN STATE */
+.site-nav.open {
+  width: 220px;                 /* sidebar width */
+}
+
+/* push content when open */
+.site-nav.open + .content {
+  margin-left: 220px;
+}
+
+.nav-links {
+  list-style: none;
+  padding: 16px;
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+}
+header h1 {
+  font-size: 1.5rem;
+  margin: 0;
+}
+
+/* HAMBURGER BUTTON */
+.nav-toggle {
+  background: none;
+  color: var(--dracula-fg);
+  cursor: pointer;
+  border: none;
+  gap: 4px;
+  font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+
+  .site-nav {
+    width: 100%;
+    height: 0;
+    border-right: none;
+  }
+
+  .site-nav.open {
+    height: auto;
+  }
+
+  .site-nav.open + .content {
+    margin-left: 0;
+  }
+
+  .nav-toggle {
+    position: static;
+    margin: 12px;
+  }
 }

@@ -33,4 +33,3 @@ async function loadVersions() {
 }
 
 document.addEventListener('DOMContentLoaded', loadVersions);
-``
