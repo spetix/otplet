@@ -1,8 +1,0 @@
-# OTPLet 
-
-## Prerequisites
-
-## Installation
-
-## Setup
-

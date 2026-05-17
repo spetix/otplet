@@ -54,3 +54,17 @@ prepare-site:
 	cp coverage.xml build/site
 
 all: build test coverage
+
+DOCS_DIR=docs-site
+
+docs-dev:
+    cd $(DOCS_DIR) && npm run start
+
+docs-build:
+    cd $(DOCS_DIR) && npm run build
+
+docs-serve:
+    cd $(DOCS_DIR) && npm run serve
+
+docs-clean:
+    cd $(DOCS_DIR) && rm -rf build .docusaurus node_modules
