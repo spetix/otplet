@@ -38,14 +38,14 @@ test: build
 
 # TODO run tests
 test-results.json:
-	go test -json -v -coverprofile=coverage.txt ./... | tee test-results.json
+	go test -json -v -coverprofile=coverage.out ./... | tee test-results.json
 
 coverage: test
 	$(MAKE) coverage.xml
 
 coverage.xml:
-	gocover-cobertura < coverage.txt > coverage.xml
-
+	gocover-cobertura < coverage.out > coverage.xml
+	
 
 prepare-site:
 	mkdir -p build/site
