@@ -29,11 +29,11 @@ jobs:
           go tool cover -html=coverage.out -o coverage/index.html
 
       # --- docs ---
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 18
-          cache: npm
-          cache-dependency-path: docs-site/package-lock.json
+    #   - uses: actions/setup-node@v4
+    #     with:
+    #       node-version: 18
+    #       cache: npm
+    #       cache-dependency-path: docs-site/package-lock.json
 
       - run: npm ci
         working-directory: docs-site
