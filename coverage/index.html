@@ -1,0 +1,878 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>cmd: Go Coverage Report</title>
+		<style>
+			body {
+				background: black;
+				color: rgb(80, 80, 80);
+			}
+			body, pre, #legend span {
+				font-family: Menlo, monospace;
+				font-weight: bold;
+			}
+			#topbar {
+				background: black;
+				position: fixed;
+				top: 0; left: 0; right: 0;
+				height: 42px;
+				border-bottom: 1px solid rgb(80, 80, 80);
+			}
+			#content {
+				margin-top: 50px;
+			}
+			#nav, #legend {
+				float: left;
+				margin-left: 10px;
+			}
+			#legend {
+				margin-top: 12px;
+			}
+			#nav {
+				margin-top: 10px;
+			}
+			#legend span {
+				margin: 0 5px;
+			}
+			.cov0 { color: rgb(192, 0, 0) }
+.cov1 { color: rgb(128, 128, 128) }
+.cov2 { color: rgb(116, 140, 131) }
+.cov3 { color: rgb(104, 152, 134) }
+.cov4 { color: rgb(92, 164, 137) }
+.cov5 { color: rgb(80, 176, 140) }
+.cov6 { color: rgb(68, 188, 143) }
+.cov7 { color: rgb(56, 200, 146) }
+.cov8 { color: rgb(44, 212, 149) }
+.cov9 { color: rgb(32, 224, 152) }
+.cov10 { color: rgb(20, 236, 155) }
+
+		</style>
+	</head>
+	<body>
+		<div id="topbar">
+			<div id="nav">
+				<select id="files">
+				
+				<option value="file0">github.com/spetix/otplet/cmd/main.go (0.0%)</option>
+				
+				<option value="file1">github.com/spetix/otplet/cmd/subcommands/create.go (0.0%)</option>
+				
+				<option value="file2">github.com/spetix/otplet/cmd/subcommands/lock.go (0.0%)</option>
+				
+				<option value="file3">github.com/spetix/otplet/cmd/subcommands/show.go (0.0%)</option>
+				
+				<option value="file4">github.com/spetix/otplet/cmd/subcommands/unlock.go (0.0%)</option>
+				
+				<option value="file5">github.com/spetix/otplet/internal/events/clicks.go (0.0%)</option>
+				
+				<option value="file6">github.com/spetix/otplet/internal/logger/setuplogger.go (0.0%)</option>
+				
+				<option value="file7">github.com/spetix/otplet/internal/onetimepass/totp.go (100.0%)</option>
+				
+				<option value="file8">github.com/spetix/otplet/internal/provider/otp_provider.go (77.3%)</option>
+				
+				<option value="file9">github.com/spetix/otplet/internal/render/data.go (60.0%)</option>
+				
+				<option value="file10">github.com/spetix/otplet/internal/secretmanager/secretmanager.go (62.2%)</option>
+				
+				</select>
+			</div>
+			<div id="legend">
+				<span>not tracked</span>
+			
+				<span class="cov0">not covered</span>
+				<span class="cov8">covered</span>
+			
+			</div>
+		</div>
+		<div id="content">
+		
+		<pre class="file" id="file0" style="display: none">package main
+
+import (
+        "fmt"
+        "log/slog"
+        "os"
+
+        "github.com/spetix/otplet/cmd/subcommands"
+        "github.com/spetix/otplet/internal/logger"
+        "github.com/spf13/cobra"
+)
+
+func NewMainCommand() *cobra.Command <span class="cov0" title="0">{
+        main := &amp;cobra.Command{
+                Use:   "otplet",
+                Short: "manage your otps in a smart way",
+                PersistentPreRunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        logLevel, err := cmd.Flags().GetString("logLevel")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">logFile := cmd.Flag("logFile").Value.String()
+
+                        logFormat, err := cmd.Flags().GetString("logFormat")
+                        if err != nil </span><span class="cov0" title="0">{
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">logger.SetupLogger(logLevel, logFile, logFormat)
+                        slog.Info("logger setup")
+                        return nil</span>
+                },
+                Run: func(cmd *cobra.Command, args []string) <span class="cov0" title="0">{
+                        fmt.Println("Use --help to see available commands.")
+                }</span>,
+        }
+
+        <span class="cov0" title="0">main.PersistentFlags().StringP("logLevel", "l", "info", "log level (default is info)")
+        main.PersistentFlags().StringP("logFile", "f", "", "log file path (default is stdout)")
+        main.PersistentFlags().StringP("logFormat", "F", "text", "log format (default is text, options are text and json)")
+        main.PersistentFlags().StringP("store", "s", "otp.json", "path to otp store")
+
+        return main</span>
+}
+
+func main() <span class="cov0" title="0">{
+
+        mainCmd := NewMainCommand()
+        mainCmd.AddCommand(subcommands.NewCreateCommand())
+        mainCmd.AddCommand(subcommands.NewShowCommand())
+        mainCmd.AddCommand(subcommands.NewLockCommand())
+        mainCmd.AddCommand(subcommands.NewUnlockCommand())
+
+        if err := mainCmd.Execute(); err != nil </span><span class="cov0" title="0">{
+                fmt.Println(err)
+                os.Exit(1)
+        }</span>
+}
+</pre>
+		
+		<pre class="file" id="file1" style="display: none">package subcommands
+
+import (
+        "log/slog"
+
+        "github.com/spetix/otplet/internal/secretmanager"
+        "github.com/spf13/cobra"
+)
+
+func NewCreateCommand() *cobra.Command <span class="cov0" title="0">{
+        var url string
+        var recipient string
+
+        create := &amp;cobra.Command{
+                Use:   "create",
+                Short: "create otp setup",
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        slog.Info("Creating secure seed storage")
+                        otpStore := cmd.Flag("store").Value.String()
+                        slog.Info("Using OTP store", "store", otpStore)
+                        err := secretmanager.SaveGenerator(url, otpStore, []string{recipient})
+                        if err != nil </span><span class="cov0" title="0">{
+                                slog.Debug("used url as seed", "url", url)
+                                return err
+                        }</span>
+                        <span class="cov0" title="0">slog.Info("Imported generator seed encrypted", "recipient", recipient, "store", otpStore)
+                        return nil</span>
+                },
+        }
+
+        <span class="cov0" title="0">createFlags := create.Flags()
+        createFlags.StringVarP(&amp;url, "url", "u", "", "qr code decoded url")
+        createFlags.StringVarP(&amp;recipient, "recipient", "r", "", "GPG recipient to encrypt OTP store")
+        slog.Info("Create command registered")
+        return create</span>
+}
+</pre>
+		
+		<pre class="file" id="file2" style="display: none">package subcommands
+
+import (
+        "log/slog"
+
+        "github.com/spetix/otplet/internal/events"
+        "github.com/spf13/cobra"
+)
+
+func NewLockCommand() *cobra.Command <span class="cov0" title="0">{
+        var recipient string
+
+        lock := &amp;cobra.Command{
+                Use:   "lock",
+                Short: "lock GPG key",
+                Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
+                        cm := events.ClickManager{}
+                        otpStore := cmd.Flag("store").Value.String()
+                        slog.Info("Locking GPG key for OTP store", "store", otpStore, "recipient", recipient)
+                        cm.HandleClickEvents("3", otpStore, recipient)
+                        slog.Info("GPG key locked")
+                }</span>,
+        }
+
+        <span class="cov0" title="0">lock.Flags().StringVarP(&amp;recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+
+        slog.Info("Lock command registered")
+        return lock</span>
+}
+</pre>
+		
+		<pre class="file" id="file3" style="display: none">package subcommands
+
+import (
+        "fmt"
+        "log/slog"
+        "os"
+
+        "github.com/spetix/bar-out-adapters/pkg/barout"
+        "github.com/spetix/otplet/internal/events"
+        "github.com/spetix/otplet/internal/provider"
+        "github.com/spetix/otplet/internal/render"
+        "github.com/spetix/otplet/internal/secretmanager"
+        "github.com/spf13/cobra"
+)
+
+func NewShowCommand() *cobra.Command <span class="cov0" title="0">{
+        var recipient string
+        var proto string
+        var renderOptions render.RenderOptions
+
+        show := &amp;cobra.Command{
+                Use:   "show",
+                Short: "show current otp",
+                RunE: func(cmd *cobra.Command, args []string) error </span><span class="cov0" title="0">{
+                        // Handle i3blocks click events
+                        eventId := os.Getenv("BLOCK_BUTTON")
+
+                        cm := events.ClickManager{}
+                        otpStore := cmd.Flag("store").Value.String()
+                        slog.Info("Using seed in store", "store", otpStore)
+                        err := cm.HandleClickEvents(eventId, otpStore, recipient)
+                        var pv provider.OtpProviderItf
+                        if err != nil </span><span class="cov0" title="0">{
+                                pv = provider.NewDummyProvider()
+                        }</span> else<span class="cov0" title="0"> {
+                                pv, err = secretmanager.LoadTokenFromFile(otpStore)
+                        }</span>
+
+                        <span class="cov0" title="0">b := barout.New(proto)
+
+                        if pv == nil </span><span class="cov0" title="0">{
+                                return fmt.Errorf("OTP provider not found")
+                        }</span>
+                        <span class="cov0" title="0">data := render.OtpDataNew(pv, &amp;renderOptions)
+
+                        b.Print(data)
+                        return nil</span>
+                },
+        }
+
+        <span class="cov0" title="0">showFlags := show.Flags()
+        showFlags.StringVarP(&amp;proto, "proto", "p", "raw", "proto")
+        lbl := os.Getenv("label")
+        if lbl == "" </span><span class="cov0" title="0">{
+                lbl = "🎄"
+        }</span>
+        <span class="cov0" title="0">showFlags.StringVarP(&amp;renderOptions.Label, "label", "L", lbl, "label")
+        showFlags.StringVarP(&amp;renderOptions.Format, "format", "R", "text", "format")
+        clr := os.Getenv("color")
+        if clr == "" </span><span class="cov0" title="0">{
+                clr = "#ff0000"
+        }</span>
+        <span class="cov0" title="0">showFlags.StringVarP(&amp;renderOptions.ForegroundColor, "color", "c", clr, "foreground color")
+        bgclr := os.Getenv("background")
+        if bgclr == "" </span><span class="cov0" title="0">{
+                bgclr = "#000000"
+        }</span>
+        <span class="cov0" title="0">showFlags.StringVarP(&amp;renderOptions.BackgroundColor, "background", "b", "#000000", "background color")
+
+        showFlags.StringVarP(&amp;recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+
+        slog.Info("Show command registered")
+        return show</span>
+}
+</pre>
+		
+		<pre class="file" id="file4" style="display: none">package subcommands
+
+import (
+        "fmt"
+        "log/slog"
+
+        "github.com/spetix/otplet/internal/events"
+        "github.com/spf13/cobra"
+)
+
+func NewUnlockCommand() *cobra.Command <span class="cov0" title="0">{
+        var recipient string
+        unlock := &amp;cobra.Command{
+                Use:   "unlock",
+                Short: "unlock GPG key",
+                Run: func(cmd *cobra.Command, args []string) </span><span class="cov0" title="0">{
+                        cm := events.ClickManager{}
+                        otpStore := cmd.Flag("store").Value.String()
+                        slog.Info("Unlocking GPG key for OTP store", "store", otpStore, "recipient", recipient)
+                        cm.HandleClickEvents("1", otpStore, recipient)
+                        fmt.Println("GPG key unlocked")
+                }</span>,
+        }
+
+        <span class="cov0" title="0">unlock.Flags().StringVarP(&amp;recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+        slog.Info("Unlock command registered")
+        return unlock</span>
+}
+</pre>
+		
+		<pre class="file" id="file5" style="display: none">package events
+
+import (
+        "crypto/rand"
+        "fmt"
+        "os"
+        "os/exec"
+)
+
+type ClickManager struct{}
+
+// BLOCK_BUTTON environment variable: 1=left, 3=right
+func (cm *ClickManager) HandleClickEvents(eventId string, otpStore string, recipient string) error <span class="cov0" title="0">{
+        switch eventId </span>{
+        case "1":<span class="cov0" title="0">
+                return triggerGPGPopup(recipient)</span>
+        case "3":<span class="cov0" title="0">
+                // Right click - lock GPG key
+                cmd := exec.Command("gpgconf", "--kill", "gpg-agent")
+                cmd.Run()
+                return fmt.Errorf("GPG key locked")</span>
+        }
+        <span class="cov0" title="0">return nil</span>
+}
+
+func triggerGPGPopup(recipient string) error <span class="cov0" title="0">{
+        // create temp files
+        plain, err := os.CreateTemp("", "gpg-plain-*")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer os.Remove(plain.Name())
+
+        enc, err := os.CreateTemp("", "gpg-enc-*")
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer os.Remove(enc.Name())
+
+        // write a few random bytes
+        buf := make([]byte, 8)
+        if _, err := rand.Read(buf); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">if _, err := plain.Write(buf); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">plain.Close()
+
+        // encrypt (no passphrase needed)
+        encrypt := exec.Command(
+                "gpg",
+                "--yes",
+                "--batch",
+                "-r", recipient,
+                "--encrypt",
+                "-o", enc.Name(),
+                plain.Name(),
+        )
+        if err := encrypt.Run(); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        // decrypt → this triggers pinentry popup
+        <span class="cov0" title="0">decrypt := exec.Command(
+                "gpg",
+                "--decrypt",
+                enc.Name(),
+        )
+        decrypt.Stdout = nil
+        decrypt.Stderr = nil
+
+        return decrypt.Run()</span>
+}
+</pre>
+		
+		<pre class="file" id="file6" style="display: none">package logger
+
+import (
+        "errors"
+        "io"
+        "log/slog"
+        "os"
+        "strings"
+
+        zerolog "github.com/rs/zerolog"
+        slogzerolog "github.com/samber/slog-zerolog/v2"
+)
+
+func SetupLogger(logLevel string, logFile string, logFormat string) error <span class="cov0" title="0">{
+        // Create zerolog logger (destination + format)
+
+        var out io.Writer = os.Stderr
+        if logFile != "" </span><span class="cov0" title="0">{
+                f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov0" title="0">out = f</span>
+        }
+
+        // --- zerolog base logger ---
+        <span class="cov0" title="0">var zl zerolog.Logger
+        switch strings.ToLower(logFormat) </span>{
+        case "json":<span class="cov0" title="0">
+                zl = zerolog.New(out).With().Timestamp().Logger()</span>
+        case "text":<span class="cov0" title="0">
+                zl = zerolog.New(
+                        zerolog.ConsoleWriter{Out: out},
+                ).With().Timestamp().Logger()</span>
+        default:<span class="cov0" title="0">
+                return errors.New("invalid log-format (use text or json)")</span>
+        }
+
+        // --- slog level ---
+        <span class="cov0" title="0">level := new(slog.LevelVar)
+        switch strings.ToLower(logLevel) </span>{
+        case "debug":<span class="cov0" title="0">
+                level.Set(slog.LevelDebug)</span>
+        case "info":<span class="cov0" title="0">
+                level.Set(slog.LevelInfo)</span>
+        case "warn":<span class="cov0" title="0">
+                level.Set(slog.LevelWarn)</span>
+        case "error":<span class="cov0" title="0">
+                level.Set(slog.LevelError)</span>
+        default:<span class="cov0" title="0">
+                return errors.New("invalid log-level (debug, info, warn, error)")</span>
+        }
+
+        // --- bridge slog → zerolog ---
+        <span class="cov0" title="0">handler := slogzerolog.Option{
+                Level:  level,
+                Logger: &amp;zl,
+        }.NewZerologHandler()
+
+        slog.SetDefault(slog.New(handler))
+        return nil</span>
+
+}
+</pre>
+		
+		<pre class="file" id="file7" style="display: none">// Package onetimepass defines the one-time password value and its validity
+// metadata used by the blocklet runtime.
+package onetimepass
+
+import "time"
+
+// PassCode holds a generated OTP, its expiration time, and any generation error.
+type PassCode struct {
+        Code       string
+        ValidUntil time.Time
+        Remaining  time.Duration
+        Error      error
+}
+
+// IsValid returns true when the OTP code is present, has no error, and is still valid.
+func (p PassCode) IsValid() bool <span class="cov8" title="1">{
+        return p.Error == nil &amp;&amp; time.Now().Before(p.ValidUntil)
+}</span>
+</pre>
+		
+		<pre class="file" id="file8" style="display: none">// Package provider generates and refreshes OTP codes from an OTP key.
+package provider
+
+import (
+        "sync/atomic"
+        "time"
+
+        otplib "github.com/pquerna/otp"
+        "github.com/pquerna/otp/totp"
+        "github.com/spetix/otplet/internal/onetimepass"
+)
+
+type OtpProviderItf interface {
+        GetCode() *onetimepass.PassCode
+        Secret() string
+}
+
+type dummyOtpProvider struct{}
+
+func NewDummyProvider() OtpProviderItf <span class="cov0" title="0">{
+        return &amp;dummyOtpProvider{}
+}</span>
+
+func (d *dummyOtpProvider) GetCode() *onetimepass.PassCode <span class="cov0" title="0">{
+        return &amp;onetimepass.PassCode{
+                Code:       "󱧚",
+                ValidUntil: time.Now().Add(30 * time.Second),
+                Remaining:  30 * time.Second,
+                Error:      nil,
+        }
+}</span>
+
+func (d *dummyOtpProvider) Secret() string <span class="cov0" title="0">{
+        return "dummy"
+}</span>
+
+// OtpProvider generates time-based one-time passwords and keeps a current code
+// available through atomic storage so render consumers can read updates safely.
+type otpProvider struct {
+        Key  *otplib.Key
+        Code atomic.Pointer[onetimepass.PassCode]
+}
+
+func NewOtpProvider(key *otplib.Key) *otpProvider <span class="cov8" title="1">{
+        provider := &amp;otpProvider{
+                Key: key,
+                // atomic.Pointer zero value is fine, but we populate it immediately
+                Code: atomic.Pointer[onetimepass.PassCode]{},
+        }
+
+        // generate an initial code synchronously so callers don't get nil
+        provider.otpCode()
+
+        // start the background refresher now that we have a valid code
+        go provider.start()
+        return provider
+}</span>
+
+func (p *otpProvider) otpCode() <span class="cov8" title="1">{
+        now, remaining := getTime(p.Key.Period())
+        validUntil := now.Add(remaining)
+        code, err := totp.GenerateCodeCustom(p.Key.Secret(), time.Now().UTC(), totp.ValidateOpts{
+                Period:    uint(p.Key.Period()),
+                Skew:      1,
+                Digits:    p.Key.Digits(),
+                Algorithm: p.Key.Algorithm(),
+        })
+        codeVal := &amp;onetimepass.PassCode{
+                Code:       code,
+                ValidUntil: validUntil,
+                Remaining:  remaining,
+                Error:      err,
+        }
+
+        p.Code.Store(codeVal)
+}</span>
+
+func (p *otpProvider) start() <span class="cov8" title="1">{
+        period := time.Duration(p.Key.Period()) * time.Second
+        ticker := time.NewTicker(period)
+        defer ticker.Stop()
+
+        for range ticker.C </span><span class="cov0" title="0">{
+                p.otpCode()
+        }</span>
+}
+
+// GetCode returns the latest generated OTP code, or nil if generation failed.
+func (p *otpProvider) GetCode() *onetimepass.PassCode <span class="cov8" title="1">{
+        return p.Code.Load()
+}</span>
+
+func (p *otpProvider) Secret() string <span class="cov0" title="0">{
+        return p.Key.Secret()
+}</span>
+
+// getTime returns the current UTC time and the remaining duration for the
+// current OTP period.
+func getTime(period uint64) (time.Time, time.Duration) <span class="cov8" title="1">{
+        now := time.Now().UTC()
+        remaining := period - (uint64(now.Second()) % period)
+        return now, time.Duration(remaining) * time.Second
+}</span>
+</pre>
+		
+		<pre class="file" id="file9" style="display: none">// Package render exposes OTP values to the bar-out adapter used by the blocklet.
+package render
+
+import (
+        "fmt"
+
+        "github.com/spetix/bar-out-adapters/pkg/barout/data"
+        "github.com/spetix/otplet/internal/provider"
+)
+
+// RenderOptions contains display configuration for the OTP blocklet output.
+type RenderOptions struct {
+        Label           string
+        Format          string
+        ForegroundColor string
+        BackgroundColor string
+}
+
+// OtpData implements the bar-out data interface for OTP display.
+type OtpData struct {
+        data.Data
+        otp     provider.OtpProviderItf
+        options *RenderOptions
+}
+
+func (d *OtpData) Short() string <span class="cov8" title="1">{
+        if d.otp == nil </span><span class="cov8" title="1">{
+                return "No OTP configured"
+        }</span>
+        <span class="cov8" title="1">code := d.otp.GetCode()
+        if code == nil || code.Error != nil </span><span class="cov0" title="0">{
+                return "Error generating OTP"
+        }</span>
+        <span class="cov8" title="1">return code.Code</span>
+}
+
+// Long returns a detailed OTP string for the bar output, optionally using a
+// configured format string.
+func (d *OtpData) Long() string <span class="cov8" title="1">{
+        if d.otp == nil </span><span class="cov8" title="1">{
+                return "No OTP configured"
+        }</span>
+        <span class="cov8" title="1">code := d.otp.GetCode()
+        if code == nil || code.Error != nil </span><span class="cov0" title="0">{
+                return "Error generating OTP"
+        }</span>
+
+        <span class="cov8" title="1">if d.options.Format != "" </span><span class="cov8" title="1">{
+                return fmt.Sprintf(d.options.Format, code.Code, int(code.Remaining.Seconds()))
+        }</span>
+
+        <span class="cov0" title="0">return code.Code</span>
+}
+
+func (d *OtpData) BackgroundColor() string <span class="cov0" title="0">{
+        return d.options.BackgroundColor
+}</span>
+
+func (d *OtpData) ForegroundColor() string <span class="cov0" title="0">{
+        return d.options.ForegroundColor
+}</span>
+
+func (d *OtpData) Label() string <span class="cov0" title="0">{
+        return d.options.Label
+}</span>
+
+// OnClick returns the command to execute when the blocklet is left-clicked.
+// This unlocks the GPG key so it won't prompt for passphrase on next use.
+func (d *OtpData) OnClick() string <span class="cov0" title="0">{
+        // The command runs gpg-connect-agent to cache the passphrase
+        return "gpg-connect-agent updatestatus /bye"
+}</span>
+
+// OnRightClick returns the command to execute when the blocklet is right-clicked.
+// This blocks the GPG key by killing the agent, clearing the cached passphrase.
+func (d *OtpData) OnRightClick() string <span class="cov0" title="0">{
+        // The command kills the gpg-agent to clear cached passphrases
+        return "gpgconf --kill gpg-agent"
+}</span>
+
+// OtpDataNew constructs a new render data instance for the given provider and
+// render options.
+func OtpDataNew(otp provider.OtpProviderItf, renderOptions *RenderOptions) *OtpData <span class="cov8" title="1">{
+        return &amp;OtpData{
+                options: renderOptions,
+                otp:     otp,
+        }
+}</span>
+</pre>
+		
+		<pre class="file" id="file10" style="display: none">// Package secretmanager handles local persistence of OTP generator URLs.
+package secretmanager
+
+import (
+        "bytes"
+        "encoding/json"
+        "fmt"
+        "log/slog"
+        "os"
+        "os/exec"
+        "path/filepath"
+        "strings"
+
+        otplib "github.com/pquerna/otp"
+        "github.com/spetix/otplet/internal/provider"
+)
+
+func expandPath(path string) (string, error) <span class="cov8" title="1">{
+        if strings.HasPrefix(path, "~") </span><span class="cov0" title="0">{
+                home, err := os.UserHomeDir()
+                if err != nil </span><span class="cov0" title="0">{
+                        return "", err
+                }</span>
+                <span class="cov0" title="0">path = strings.Replace(path, "~", home, 1)</span>
+        }
+        <span class="cov8" title="1">return filepath.Abs(path)</span>
+}
+
+func looksLikePGPMessage(data []byte) bool <span class="cov0" title="0">{
+        return bytes.Contains(data, []byte("-----BEGIN PGP MESSAGE-----"))
+}</span>
+
+func decryptIfNeeded(ciphertext []byte) ([]byte, error) <span class="cov8" title="1">{
+        cmd := exec.Command("gpg", "--decrypt", "--quiet", "--batch", "--pinentry-mode", "error")
+        cmd.Stdin = bytes.NewReader(ciphertext)
+
+        var stdout bytes.Buffer
+        var stderr bytes.Buffer
+        cmd.Stdout = &amp;stdout
+        cmd.Stderr = &amp;stderr
+
+        if err := cmd.Run(); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gpg decrypt failed: %w (stderr: %s)", err, stderr.String())
+        }</span>
+
+        <span class="cov8" title="1">return stdout.Bytes(), nil</span>
+}
+
+func encryptData(plaintext []byte, recipients []string) ([]byte, error) <span class="cov8" title="1">{
+        if len(recipients) == 0 </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("missing GPG recipient")
+        }</span>
+
+        // Build gpg command with recipients
+        <span class="cov8" title="1">args := []string{"--encrypt", "--armor", "--quiet", "--batch", "--no-tty"}
+        for _, recipient := range recipients </span><span class="cov8" title="1">{
+                args = append(args, "--recipient", recipient)
+        }</span>
+        <span class="cov8" title="1">args = append(args, "--trust-model", "always")
+
+        cmd := exec.Command("gpg", args...)
+        cmd.Stdin = bytes.NewReader(plaintext)
+
+        var stdout bytes.Buffer
+        var stderr bytes.Buffer
+        cmd.Stdout = &amp;stdout
+        cmd.Stderr = &amp;stderr
+
+        if err := cmd.Run(); err != nil </span><span class="cov0" title="0">{
+                return nil, fmt.Errorf("gpg encrypt failed: %w (stderr: %s)", err, stderr.String())
+        }</span>
+
+        <span class="cov8" title="1">return stdout.Bytes(), nil</span>
+}
+
+// LoadTokenFromFile reads the stored OTP generator URL from disk and returns the parsed key.
+func LoadTokenFromFile(location string) (provider.OtpProviderItf, error) <span class="cov8" title="1">{
+        expandedPath, err := expandPath(location)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">data, err := os.ReadFile(expandedPath)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">plaintext, err := decryptIfNeeded(data)
+        if err != nil </span><span class="cov0" title="0">{
+                // unlock required sending dummy provider
+                slog.Warn("Warning: failed to decrypt OTP store, returning dummy provider", "error", err)
+                return provider.NewDummyProvider(), nil
+        }</span>
+
+        <span class="cov8" title="1">var keyUrl string
+        if err := json.NewDecoder(bytes.NewReader(plaintext)).Decode(&amp;keyUrl); err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">key, err := otplib.NewKeyFromURL(keyUrl)
+        if err != nil </span><span class="cov0" title="0">{
+                return nil, err
+        }</span>
+
+        <span class="cov8" title="1">if err != nil </span><span class="cov0" title="0">{
+                slog.Warn("Error loading OTP key", "error", err)
+                return provider.NewDummyProvider(), nil
+        }</span>
+        <span class="cov8" title="1">otpProvider := provider.NewOtpProvider(key)
+
+        return otpProvider, nil</span>
+}
+
+func SaveGenerator(url string, location string, recipients []string) error <span class="cov8" title="1">{
+        if url == "" </span><span class="cov0" title="0">{
+                return fmt.Errorf("URL cannot be empty")
+        }</span>
+        <span class="cov8" title="1">slog.Info("Importing OTP generator", "location", location, "recipients", recipients)
+        slog.Debug("Seed",
+                "url", url,
+        )
+        key, err := otplib.NewKeyFromURL(url)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov8" title="1">expandedPath, err := expandPath(location)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+
+        <span class="cov8" title="1">if len(recipients) &gt; 0 </span><span class="cov8" title="1">{
+                payload, err := json.Marshal(key.URL())
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">ciphertext, err := encryptData(payload, recipients)
+                if err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">if err := os.WriteFile(expandedPath, ciphertext, 0600); err != nil </span><span class="cov0" title="0">{
+                        return err
+                }</span>
+                <span class="cov8" title="1">slog.Info("Encrypted OTP generator saved",
+                        "location", location,
+                )
+                return nil</span>
+        }
+
+        <span class="cov0" title="0">hdlr, err := os.OpenFile(expandedPath, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0600)
+        if err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">defer hdlr.Close()
+
+        enc := json.NewEncoder(hdlr)
+        if err := enc.Encode(key.URL()); err != nil </span><span class="cov0" title="0">{
+                return err
+        }</span>
+        <span class="cov0" title="0">slog.Info("OTP generator saved",
+                "location", location,
+        )
+
+        return nil</span>
+
+}
+</pre>
+		
+		</div>
+	</body>
+	<script>
+	(function() {
+		var files = document.getElementById('files');
+		var visible;
+		files.addEventListener('change', onChange, false);
+		function select(part) {
+			if (visible)
+				visible.style.display = 'none';
+			visible = document.getElementById(part);
+			if (!visible)
+				return;
+			files.value = part;
+			visible.style.display = 'block';
+			location.hash = part;
+		}
+		function onChange() {
+			select(files.value);
+			window.scrollTo(0, 0);
+		}
+		if (location.hash != "") {
+			select(location.hash.substr(1));
+		}
+		if (!visible) {
+			select("file0");
+		}
+	})();
+	</script>
+</html>
