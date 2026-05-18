@@ -46,21 +46,6 @@ const config: Config = {
           editUrl:
             'https://otplet.cassano.fe.it/',
         },
-        blog: {
-          showReadingTime: true,
-          feedOptions: {
-            type: ['rss', 'atom'],
-            xslt: true,
-          },
-          // Please change this to your repo.
-          // Remove this to remove the "edit this page" links.
-          editUrl:
-            'https://otplet.cassano.fe.it/blog',
-          // Useful options to enforce blogging best practices
-          onInlineTags: 'warn',
-          onInlineAuthors: 'warn',
-          onUntruncatedBlogPosts: 'warn',
-        },
         theme: {
           customCss: './src/css/custom.css',
         },
@@ -77,7 +62,7 @@ const config: Config = {
     navbar: {
       title: 'OTPLet',
       logo: {
-        alt: 'My Site Logo',
+        alt: 'OTPLet Logo',
         src: 'img/logo.svg',
       },
       items: [
@@ -87,9 +72,9 @@ const config: Config = {
           position: 'left',
           label: 'Tutorial',
         },
-        {to: '/blog', label: 'Blog', position: 'left'},
+        // {to: '/blog', label: 'Blog', position: 'left'},
         {
-          href: 'https://github.com/facebook/docusaurus',
+          href: 'https://github.com/spetix/otplet',
           label: 'GitHub',
           position: 'right',
         },
