@@ -71,7 +71,7 @@
 				
 				<option value="file7">github.com/spetix/otplet/internal/onetimepass/totp.go (100.0%)</option>
 				
-				<option value="file8">github.com/spetix/otplet/internal/provider/otp_provider.go (77.3%)</option>
+				<option value="file8">github.com/spetix/otplet/internal/provider/otp_provider.go (59.1%)</option>
 				
 				<option value="file9">github.com/spetix/otplet/internal/render/data.go (60.0%)</option>
 				
@@ -561,7 +561,7 @@ func (p *otpProvider) otpCode() <span class="cov8" title="1">{
         p.Code.Store(codeVal)
 }</span>
 
-func (p *otpProvider) start() <span class="cov8" title="1">{
+func (p *otpProvider) start() <span class="cov0" title="0">{
         period := time.Duration(p.Key.Period()) * time.Second
         ticker := time.NewTicker(period)
         defer ticker.Stop()
