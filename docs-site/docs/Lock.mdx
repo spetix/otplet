@@ -1,0 +1,27 @@
+---
+sidebar_position: 5
+---
+
+# Lock
+
+Remove decrypted key material / lock access.
+
+## Usage
+
+```Shell
+otplet lock -r <gpg_recipient>
+```
+
+## Flags
+
+-r → GPG key reference
+
+>Example
+>```Shell
+>otplet lock -r user@example.com
+>```
+
+## Behavior
+
+Ensures OTP store is not accessible
+Forces future decrypt step

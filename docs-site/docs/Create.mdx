@@ -1,0 +1,28 @@
+---
+sidebar_position: 3
+---
+
+# Create
+
+Create a new OTP entry and store it encrypted.
+
+## Usage
+```Shell
+otplet create -u <otpauth_url> -r <gpg_recipient>
+```
+## Flags
+
+-u, --url → OTP URI (from QR decode)
+-r, --recipient → GPG key used for encryption
+
+## Example
+
+```Shell
+otplet create -u "otpauth://totp/..." -r user@example.com
+```
+
+## Behavior
+
+Parses OTP secret from URL
+Writes to store (otp.json by default)
+Encrypts using recipient GPG key.

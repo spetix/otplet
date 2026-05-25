@@ -1,0 +1,34 @@
+---
+sidebar_position: 4
+---
+
+# Show
+
+Display current OTP code.
+
+## Usage
+
+```Shell
+otplet show -r <gpg_recipient>Show more lines
+```
+
+## Flags
+
+-r → GPG recipient (required to decrypt)
+-R → output format (default: text)
+-c / -b → colors
+-L → label
+-p → output protocol
+
+## Example
+
+```Shell
+otplet show -r user@example.com
+```
+
+## Behavior
+
+Decrypts store
+Computes current OTP
+Prints formatted output
+

@@ -1,0 +1,53 @@
+name: Docs
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- rebuild coverage (no artifact dependency) ---
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - run: make setup
+
+      - name: Generate coverage
+        run: |
+          go test ./... -coverprofile=coverage.out
+          mkdir -p coverage
+          go tool cover -html=coverage.out -o coverage/index.html
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - run: npm ci
+        working-directory: docs-site
+
+      - name: Inject coverage
+        run: |
+          rm -rf docs-site/static/coverage
+          mkdir -p docs-site/static/coverage
+          cp -r coverage/* docs-site/static/coverage/
+
+      - run: npm run build
+        working-directory: docs-site
+
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/build
+          cname: ${{ secrets.DOCS_CUSTOM_FQDN }}

@@ -10,7 +10,7 @@
             "request": "launch",
             "mode": "debug",
             "program": "${file}",
-            "args": ["create","--url=otpauth://totp/GitHub:spetix?secret=XXXXXXXXXX\u0026;issuer=GitHub","--recipient=christian@cassano.fe.it","--store=~/.testgpg"]
+            "args": ["create","--url=otpauth://totp/IOTools:User?secret=FUWK3M6VWQG2QFCL&issuer=IOTools&Algorithm=SHA1&digits=6&period=30","--recipient=christian@cassano.fe.it","--store=~/.testgpg"]
         },
                 {
             "name": "Test show",

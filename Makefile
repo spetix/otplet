@@ -1,5 +1,6 @@
 PROJECT_NAME=otp_blocklet
 ARGS?=
+DOCS_DIR=docs-site
 
 setup:
 	go install github.com/t-yuki/gocover-cobertura@latest
@@ -37,14 +38,14 @@ test: build
 
 # TODO run tests
 test-results.json:
-	go test -json -v -coverprofile=coverage.txt ./... | tee test-results.json
+	go test -json -v -coverprofile=coverage.out ./... | tee test-results.json
 
 coverage: test
 	$(MAKE) coverage.xml
 
 coverage.xml:
-	gocover-cobertura < coverage.txt > coverage.xml
-
+	gocover-cobertura < coverage.out > coverage.xml
+	
 
 prepare-site:
 	mkdir -p build/site
@@ -52,5 +53,17 @@ prepare-site:
 	cp bin/* build/site
 	cp code-coverage-results.md build/site
 	cp coverage.xml build/site
+
+docs-dev:
+	cd $(DOCS_DIR) && npm run start
+
+docs-build:
+	cd $(DOCS_DIR) && npm run build
+
+docs-serve:
+	cd $(DOCS_DIR) && npm run serve
+
+docs-clean:
+	cd $(DOCS_DIR) && rm -rf build .docusaurus node_modules
 
 all: build test coverage
