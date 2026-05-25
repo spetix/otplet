@@ -24,6 +24,23 @@
   --docusaurus-highlighted-code-line-bg: rgba(68, 71, 90, 0.7);
 }
 
+.cov__big { font-size: 32px; font-weight: 700; }
+
+.cov__bar {
+  height: 10px;
+  background: var(--ifm-color-emphasis-200);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.cov__bar--sm { height: 8px; }
+
+.cov__fill { height: 100%; background: var(--ifm-color-primary); }
+
+.cov--ok   { background: var(--ifm-color-success); }
+.cov--warn { background: var(--ifm-color-warning); }
+.cov--bad  { background: var(--ifm-color-danger); }
+.cov--na   { background: var(--ifm-color-emphasis-300); }
+
 
 /*
 **
