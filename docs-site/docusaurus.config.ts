@@ -84,6 +84,11 @@ const config: Config = {
           label: 'GitHub',
           position: 'right',
         },
+        {
+          to: 'coverage',
+          label: 'Coverage',
+          position: 'left',
+        }
       ],
     },
     footer: {
