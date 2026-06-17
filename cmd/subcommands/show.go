@@ -5,7 +5,7 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/spetix/bar-out-adapters/pkg/barout"
+	"github.com/spetix/bar-out-adapters/pkg/barout/models"
 	"github.com/spetix/otplet/internal/events"
 	"github.com/spetix/otplet/internal/provider"
 	"github.com/spetix/otplet/internal/render"
@@ -13,10 +13,8 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewShowCommand() *cobra.Command {
+func NewShowCommand(setupBlocklet models.SetupBlocklet) *cobra.Command {
 	var recipient string
-	var proto string
-	var renderOptions render.RenderOptions
 
 	show := &cobra.Command{
 		Use:   "show",
@@ -36,12 +34,12 @@ func NewShowCommand() *cobra.Command {
 				pv, err = secretmanager.LoadTokenFromFile(otpStore)
 			}
 
-			b := barout.New(proto)
+			b := setupBlocklet.GetOutput()
 
 			if pv == nil {
 				return fmt.Errorf("OTP provider not found")
 			}
-			data := render.OtpDataNew(pv, &renderOptions)
+			data := render.OtpDataNew(pv, setupBlocklet.Options())
 
 			b.Print(data)
 			return nil
@@ -49,25 +47,8 @@ func NewShowCommand() *cobra.Command {
 	}
 
 	showFlags := show.Flags()
-	showFlags.StringVarP(&proto, "proto", "p", "raw", "proto")
-	lbl := os.Getenv("label")
-	if lbl == "" {
-		lbl = "🎄"
-	}
-	showFlags.StringVarP(&renderOptions.Label, "label", "L", lbl, "label")
-	showFlags.StringVarP(&renderOptions.Format, "format", "R", "text", "format")
-	clr := os.Getenv("color")
-	if clr == "" {
-		clr = "#ff0000"
-	}
-	showFlags.StringVarP(&renderOptions.ForegroundColor, "color", "c", clr, "foreground color")
-	bgclr := os.Getenv("background")
-	if bgclr == "" {
-		bgclr = "#000000"
-	}
-	showFlags.StringVarP(&renderOptions.BackgroundColor, "background", "b", "#000000", "background color")
-
-	showFlags.StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+	recipient = os.Getenv("RECIPIENT")
+	showFlags.StringVarP(&recipient, "recipient", "r", recipient, "GPG recipient to decrypt OTP store")
 
 	slog.Info("Show command registered")
 	return show

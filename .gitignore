@@ -50,3 +50,5 @@ Thumbs.db
 *.code-workspace
 coverage.*
 test-results.json
+
+generated/

@@ -5,22 +5,16 @@ import (
 	"fmt"
 
 	"github.com/spetix/bar-out-adapters/pkg/barout/data"
+	"github.com/spetix/bar-out-adapters/pkg/barout/models"
 	"github.com/spetix/otplet/internal/provider"
 )
-
-// RenderOptions contains display configuration for the OTP blocklet output.
-type RenderOptions struct {
-	Label           string
-	Format          string
-	ForegroundColor string
-	BackgroundColor string
-}
 
 // OtpData implements the bar-out data interface for OTP display.
 type OtpData struct {
 	data.Data
-	otp     provider.OtpProviderItf
-	options *RenderOptions
+	otp       provider.OtpProviderItf
+	options   models.RenderOptions
+	formatter models.Formatter
 }
 
 func (d *OtpData) Short() string {
@@ -45,23 +39,23 @@ func (d *OtpData) Long() string {
 		return "Error generating OTP"
 	}
 
-	if d.options.Format != "" {
-		return fmt.Sprintf(d.options.Format, code.Code, int(code.Remaining.Seconds()))
+	if d.formatter != nil {
+		return d.formatter.Render(code.Code, fmt.Sprint(int(code.Remaining.Seconds())))
 	}
 
 	return code.Code
 }
 
 func (d *OtpData) BackgroundColor() string {
-	return d.options.BackgroundColor
+	return d.options.BackgroundColor()
 }
 
 func (d *OtpData) ForegroundColor() string {
-	return d.options.ForegroundColor
+	return d.options.ForegroundColor()
 }
 
 func (d *OtpData) Label() string {
-	return d.options.Label
+	return d.options.Label()
 }
 
 // OnClick returns the command to execute when the blocklet is left-clicked.
@@ -80,7 +74,7 @@ func (d *OtpData) OnRightClick() string {
 
 // OtpDataNew constructs a new render data instance for the given provider and
 // render options.
-func OtpDataNew(otp provider.OtpProviderItf, renderOptions *RenderOptions) *OtpData {
+func OtpDataNew(otp provider.OtpProviderItf, renderOptions models.RenderOptions) *OtpData {
 	return &OtpData{
 		options: renderOptions,
 		otp:     otp,

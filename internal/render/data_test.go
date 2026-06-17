@@ -4,7 +4,9 @@ import (
 	"testing"
 
 	otplib "github.com/pquerna/otp"
+	"github.com/spetix/bar-out-adapters/pkg/barout"
 	"github.com/spetix/otplet/internal/provider"
+	"github.com/spf13/cobra"
 )
 
 func TestOtpDataShortAndLong(t *testing.T) {
@@ -13,9 +15,13 @@ func TestOtpDataShortAndLong(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to create OTP key: %v", err)
 	}
+	blkSetup := barout.NewSetupBlocklet(nil)
+	c := &cobra.Command{Use: "test"}
+	blkSetup.Setup(c)
+	c.PersistentFlags().Set("label", "OTP")
 
 	p := provider.NewOtpProvider(key)
-	data := OtpDataNew(p, &RenderOptions{Label: "OTP", Format: "%s (%d)s", ForegroundColor: "#fff", BackgroundColor: "#000"})
+	data := OtpDataNew(p, blkSetup.Options())
 
 	short := data.Short()
 	if short == "" {
@@ -29,7 +35,9 @@ func TestOtpDataShortAndLong(t *testing.T) {
 }
 
 func TestOtpDataNoOtpConfigured(t *testing.T) {
-	data := OtpDataNew(nil, &RenderOptions{Label: "OTP"})
+	blkSetup := barout.NewSetupBlocklet(nil)
+
+	data := OtpDataNew(nil, blkSetup.Options())
 
 	if got := data.Short(); got != "No OTP configured" {
 		t.Fatalf("expected no OTP configured message, got %q", got)

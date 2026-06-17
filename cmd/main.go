@@ -5,8 +5,10 @@ import (
 	"log/slog"
 	"os"
 
+	"github.com/spetix/bar-out-adapters/pkg/barout"
 	"github.com/spetix/otplet/cmd/subcommands"
 	"github.com/spetix/otplet/internal/logger"
+	"github.com/spetix/otplet/internal/render"
 	"github.com/spf13/cobra"
 )
 
@@ -45,10 +47,12 @@ func NewMainCommand() *cobra.Command {
 func main() {
 
 	mainCmd := NewMainCommand()
+	setupBlocklet := barout.NewSetupBlocklet(render.NewDataFormatterImpl())
+	setupBlocklet.Setup(mainCmd)
 	mainCmd.AddCommand(subcommands.NewCreateCommand())
-	mainCmd.AddCommand(subcommands.NewShowCommand())
+	mainCmd.AddCommand(subcommands.NewShowCommand(setupBlocklet))
 	mainCmd.AddCommand(subcommands.NewLockCommand())
-	mainCmd.AddCommand(subcommands.NewUnlockCommand())
+	mainCmd.AddCommand(subcommands.NewUnlockCommand(setupBlocklet))
 
 	if err := mainCmd.Execute(); err != nil {
 		fmt.Println(err)
