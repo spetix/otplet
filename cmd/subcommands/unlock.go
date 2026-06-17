@@ -1,14 +1,15 @@
 package subcommands
 
 import (
-	"fmt"
 	"log/slog"
+	"os"
 
+	"github.com/spetix/bar-out-adapters/pkg/barout/models"
 	"github.com/spetix/otplet/internal/events"
 	"github.com/spf13/cobra"
 )
 
-func NewUnlockCommand() *cobra.Command {
+func NewUnlockCommand(setupBlocklet models.SetupBlocklet) *cobra.Command {
 	var recipient string
 	unlock := &cobra.Command{
 		Use:   "unlock",
@@ -17,12 +18,16 @@ func NewUnlockCommand() *cobra.Command {
 			cm := events.ClickManager{}
 			otpStore := cmd.Flag("store").Value.String()
 			slog.Info("Unlocking GPG key for OTP store", "store", otpStore, "recipient", recipient)
-			cm.HandleClickEvents("1", otpStore, recipient)
-			fmt.Println("GPG key unlocked")
+			if err := cm.HandleClickEvents("1", otpStore, recipient); err != nil {
+				slog.Error("Failed to unlock GPG key", "error", err)
+				return
+			}
+			slog.Info("GPG key unlocked")
 		},
 	}
 
-	unlock.Flags().StringVarP(&recipient, "recipient", "r", "", "GPG recipient to decrypt OTP store")
+	recipient = os.Getenv("RECIPIENT")
+	unlock.Flags().StringVarP(&recipient, "recipient", "r", recipient, "GPG recipient to decrypt OTP store")
 	slog.Info("Unlock command registered")
 	return unlock
 }
