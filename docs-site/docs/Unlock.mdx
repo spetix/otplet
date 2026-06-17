@@ -1,0 +1,28 @@
+---
+sidebar_position: 6
+---
+
+# Unlock
+
+Unlock GPG key for OTP operations.
+
+## Usage
+
+```Shell
+otplet unlock -r <gpg_recipient>
+```
+
+## Flags
+
+-r → GPG key reference
+
+## Example
+
+```Shell
+otplet unlock -r user@example.com
+```
+
+## Behavior
+
+Triggers GPG agent / passphrase prompt
+Enables subsequent show without re-auth

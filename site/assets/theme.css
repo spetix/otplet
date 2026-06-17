@@ -1,0 +1,37 @@
+:root {
+  /* Dracula */
+  --dracula-bg: #282a36;
+  --dracula-fg: #f8f8f2;
+  --dracula-comment: #6272a4;
+  --dracula-purple: #bd93f9;
+  --dracula-cyan: #8be9fd;
+  --dracula-pink: #ff79c6;
+
+  /* Material overrides */
+  --md-default-bg-color: var(--dracula-bg);
+  --md-default-fg-color: var(--dracula-fg);
+  --md-primary-fg-color: var(--dracula-purple);
+  --md-accent-fg-color: var(--dracula-cyan);
+
+  /* shared typography */
+  --font-base: system-ui, sans-serif;
+}
+
+/* === Landing + Docs === */
+
+body {
+  background: var(--dracula-bg);
+  color: var(--dracula-fg);
+  font-family: var(--font-base);
+}
+
+h1, h2, h3 {
+  color: var(--dracula-fg);
+}
+
+a {
+  color: var(--dracula-cyan);
+}
+a:hover {
+  color: var(--dracula-pink);
+}

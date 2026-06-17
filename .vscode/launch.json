@@ -1,0 +1,33 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Test create",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "args": ["create","--url=otpauth://totp/IOTools:User?secret=FUWK3M6VWQG2QFCL&issuer=IOTools&Algorithm=SHA1&digits=6&period=30","--recipient=christian@cassano.fe.it","--store=~/.testgpg"]
+        },
+                {
+            "name": "Test show",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "args": ["show","--store=~/.testgpg"]
+        },
+                        {
+            "name": "Test show lock",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${file}",
+            "args": ["show","--store=~/.testgpg"],
+            "env": {"BLOCK_BUTTON": "3"}
+        },
+    ]
+}

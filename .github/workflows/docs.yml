@@ -1,0 +1,68 @@
+name: Docs
+
+on:
+  push:
+    tags:
+      - '*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # --- Go setup ---
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - run: make setup
+
+      # --- Install covpeek ---
+      - name: Install covpeek
+        run: go install github.com/Chapati-Systems/covpeek/cmd/covpeek@latest
+
+      # --- Generate coverage ---
+      - name: Generate coverage
+        run: |
+          go test ./... -coverprofile=coverage.out
+
+          mkdir -p coverage
+
+          # JSON for React/Docusaurus
+          covpeek --file coverage.out --output json > coverage/coverage.json
+
+          # OPTIONAL: keep HTML (remove if not needed)
+          go tool cover -html=coverage.out -o coverage/index.html
+
+      # --- Node setup ---
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 25
+          cache: npm
+          cache-dependency-path: docs-site/package-lock.json
+
+      - run: npm ci
+        working-directory: docs-site
+
+      # --- Inject coverage into Docusaurus ---
+      - name: Inject coverage
+        run: |
+          rm -rf docs-site/static/coverage
+          mkdir -p docs-site/static/coverage
+          cp -r coverage/* docs-site/static/coverage/
+
+      # --- Build docs ---
+      - run: npm run build
+        working-directory: docs-site
+
+      # --- Deploy ---
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-site/build
+          cname: ${{ secrets.DOCS_CUSTOM_FQDN }}
