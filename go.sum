@@ -24,8 +24,8 @@ github.com/samber/slog-common v0.22.0 h1:WyPxYRg/c5xUmxZJbtd0QgysHlLBhRA+MngKdJi
 github.com/samber/slog-common v0.22.0/go.mod h1:d/6OaSlzdkl9PFpfRLgn8FwY1OW6EFmPtBpsHX4MrU0=
 github.com/samber/slog-zerolog/v2 v2.9.2 h1:DIFzfzDTxHeRyGlfg/D7b2by7VVzcsBTybRPrzjWF4c=
 github.com/samber/slog-zerolog/v2 v2.9.2/go.mod h1:2q6cYK2OcN6YfQE/WyCnUtigc+yYf3ozqGsGmRwZR6I=
-github.com/spetix/bar-out-adapters v0.0.5 h1:GKepdk5sL/OIoWiODkqGhfbbLgWdgpaUP6AuuWLByc8=
-github.com/spetix/bar-out-adapters v0.0.5/go.mod h1:/iiekw8tBsJFx7tcYMB0a3KWuEkuy0iW3aRuApGj2dQ=
+github.com/spetix/bar-out-adapters v1.1.0-RC1 h1:uHkTNvSuSlzaGKdlxAd0JE3zlIEre9T+Pb9ZOI/pxZ0=
+github.com/spetix/bar-out-adapters v1.1.0-RC1/go.mod h1:/iiekw8tBsJFx7tcYMB0a3KWuEkuy0iW3aRuApGj2dQ=
 github.com/spf13/cobra v1.10.2 h1:DMTTonx5m65Ic0GOoRY2c16WCbHxOOw6xxezuLaBpcU=
 github.com/spf13/cobra v1.10.2/go.mod h1:7C1pvHqHw5A4vrJfjNwvOdzYu0Gml16OCs2GRiTUUS4=
 github.com/spf13/pflag v1.0.9/go.mod h1:McXfInJRrz4CZXVZOBLb0bTZqETkiAhM9Iw0y3An2Bg=

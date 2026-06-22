@@ -4,14 +4,13 @@ package render
 import (
 	"fmt"
 
-	"github.com/spetix/bar-out-adapters/pkg/barout/data"
 	"github.com/spetix/bar-out-adapters/pkg/barout/models"
 	"github.com/spetix/otplet/internal/provider"
 )
 
 // OtpData implements the bar-out data interface for OTP display.
 type OtpData struct {
-	data.Data
+	models.Data
 	otp       provider.OtpProviderItf
 	options   models.RenderOptions
 	formatter models.Formatter
