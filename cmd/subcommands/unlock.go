@@ -15,10 +15,9 @@ func NewUnlockCommand(setupBlocklet models.SetupBlocklet) *cobra.Command {
 		Use:   "unlock",
 		Short: "unlock GPG key",
 		Run: func(cmd *cobra.Command, args []string) {
-			cm := events.ClickManager{}
 			otpStore := cmd.Flag("store").Value.String()
 			slog.Info("Unlocking GPG key for OTP store", "store", otpStore, "recipient", recipient)
-			if err := cm.HandleClickEvents("1", otpStore, recipient); err != nil {
+			if err := events.TriggerGPGPopup(recipient); err != nil {
 				slog.Error("Failed to unlock GPG key", "error", err)
 				return
 			}

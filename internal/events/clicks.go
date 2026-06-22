@@ -7,23 +7,13 @@ import (
 	"os/exec"
 )
 
-type ClickManager struct{}
-
-// BLOCK_BUTTON environment variable: 1=left, 3=right
-func (cm *ClickManager) HandleClickEvents(eventId string, otpStore string, recipient string) error {
-	switch eventId {
-	case "1":
-		return triggerGPGPopup(recipient)
-	case "3":
-		// Right click - lock GPG key
-		cmd := exec.Command("gpgconf", "--kill", "gpg-agent")
-		cmd.Run()
-		return fmt.Errorf("GPG key locked")
-	}
-	return nil
+func TriggerLock() error {
+	cmd := exec.Command("gpgconf", "--kill", "gpg-agent")
+	cmd.Run()
+	return fmt.Errorf("GPG key locked")
 }
 
-func triggerGPGPopup(recipient string) error {
+func TriggerGPGPopup(recipient string) error {
 	// create temp files
 	plain, err := os.CreateTemp("", "gpg-plain-*")
 	if err != nil {

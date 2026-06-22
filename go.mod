@@ -3,7 +3,7 @@ module github.com/spetix/otplet
 go 1.26
 
 require (
-	github.com/spetix/bar-out-adapters v0.0.5
+	github.com/spetix/bar-out-adapters v1.1.0-RC0
 	github.com/spf13/cobra v1.10.2
 )
 

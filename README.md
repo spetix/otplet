@@ -2,6 +2,7 @@
 
 It provides a blocklet that shows your favourite's site/application otp.
 
+**Powered by [bar-out-adapters](github.com/spetix/bar-out-adapters)**
 ## Installation
 
 * Copy blocklet to blocklets directory (e.g. `$HOME/.config/i3blocks/blocklets`)

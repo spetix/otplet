@@ -14,10 +14,9 @@ func NewLockCommand() *cobra.Command {
 		Use:   "lock",
 		Short: "lock GPG key",
 		Run: func(cmd *cobra.Command, args []string) {
-			cm := events.ClickManager{}
 			otpStore := cmd.Flag("store").Value.String()
 			slog.Info("Locking GPG key for OTP store", "store", otpStore, "recipient", recipient)
-			cm.HandleClickEvents("3", otpStore, recipient)
+			events.TriggerLock()
 			slog.Info("GPG key locked")
 		},
 	}

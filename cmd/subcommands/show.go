@@ -20,14 +20,20 @@ func NewShowCommand(setupBlocklet models.SetupBlocklet) *cobra.Command {
 		Use:   "show",
 		Short: "show current otp",
 		RunE: func(cmd *cobra.Command, args []string) error {
-			// Handle i3blocks click events
-			eventId := os.Getenv("BLOCK_BUTTON")
 
-			cm := events.ClickManager{}
+			em := setupBlocklet.GetEventManager()
+			em.Register(models.LeftButton, func() error {
+				slog.Info("Left click event triggered")
+				return events.TriggerGPGPopup(recipient)
+			})
+			em.Register(models.RightButton, func() error {
+				slog.Info("Right click event triggered")
+				return events.TriggerLock()
+			})
+
 			otpStore := cmd.Flag("store").Value.String()
-			slog.Info("Using seed in store", "store", otpStore)
-			err := cm.HandleClickEvents(eventId, otpStore, recipient)
 			var pv provider.OtpProviderItf
+			err := em.Run()
 			if err != nil {
 				pv = provider.NewDummyProvider()
 			} else {
